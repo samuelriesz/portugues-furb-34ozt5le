@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Licitações — treino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,620&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --papel: #f4ecdf;
+    --cartao: #fffdf8;
+    --tinta: #2a2118;
+    --suave: #7d6b5c;
+    --linha: #eadccb;
+    --terracota: #9a3412;
+    --verde: #1f6b45;
+    --verde-bg: #e7f6ee;
+    --rosa: #be123c;
+    --rosa-bg: #fdecef;
+    --sombra: 0 12px 32px rgba(72, 40, 12, 0.06);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--tinta);
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    background:
+      radial-gradient(900px 420px at 0% -10%, #f6d7b8 0%, transparent 60%),
+      radial-gradient(800px 380px at 100% 0%, #ead9c6 0%, transparent 55%),
+      var(--papel);
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:focus-visible, .opcao:focus-visible {
+    outline: 2px solid var(--terracota);
+    outline-offset: 2px;
+  }
+  .topo {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(244, 236, 223, 0.94);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid #e5d5c4;
+  }
+  .barra {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.75rem 1.1rem 0.35rem;
+  }
+  .marca { flex: 1; min-width: 0; }
+  .kicker {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--suave);
+    font-weight: 700;
+  }
+  h1 {
+    margin: 0;
+    font-family: Fraunces, Georgia, serif;
+    font-weight: 560;
+    font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+    letter-spacing: -0.02em;
+  }
+  .ticket {
+    background: var(--cartao);
+    border: 1px solid var(--linha);
+    border-radius: 16px;
+    min-width: 7.2rem;
+    padding: 0.35rem 0.85rem 0.45rem;
+    text-align: center;
+    box-shadow: var(--sombra);
+  }
+  .ticket strong {
+    display: block;
+    font-family: Fraunces, Georgia, serif;
+    font-size: 2rem;
+    font-weight: 620;
+    line-height: 1;
+    color: var(--terracota);
+    font-variant-numeric: tabular-nums;
+  }
+  .ticket span { display: block; color: var(--suave); font-size: 0.82rem; }
+  .acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .btn {
+    border: 1px solid #ddc9b4;
+    background: var(--cartao);
+    border-radius: 999px;
+    padding: 0.42rem 0.8rem;
+    font-weight: 650;
+  }
+  .btn:hover { border-color: #c4a484; }
+  .dialogo {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    width: min(18rem, calc(100vw - 2rem));
+    background: var(--cartao);
+    border: 1px solid var(--linha);
+    border-radius: 14px;
+    padding: 0.85rem;
+    box-shadow: 0 16px 40px rgba(60, 30, 10, 0.14);
+  }
+  .dialogo p { margin: 0 0 0.7rem; }
+  .dialogo .acoes { justify-content: flex-end; }
+  .btn-apagar { background: var(--rosa); color: white; border-color: var(--rosa); }
+  .dica {
+    margin: 0;
+    padding: 0.15rem 1.1rem 0.45rem;
+    color: var(--suave);
+    font-size: 0.95rem;
+  }
+  .trilha {
+    display: flex;
+    height: 6px;
+    margin: 0 1.1rem 0.55rem;
+    background: #e6d8c6;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  #barra-ok { background: var(--verde); width: 0; height: 100%; }
+  #barra-erro { background: #e58a9b; width: 0; height: 100%; }
+  .temas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0 1.1rem 0.75rem;
+  }
+  .chip {
+    border: 1px solid #e0d0bf;
+    background: transparent;
+    border-radius: 999px;
+    padding: 0.28rem 0.7rem;
+    white-space: nowrap;
+    color: #5c4b3e;
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--tinta);
+    border-color: var(--tinta);
+    color: #fffaf3;
+  }
+  main {
+    width: min(760px, calc(100% - 1.6rem));
+    margin: 1.1rem auto 3rem;
+  }
+  .card {
+    background: var(--cartao);
+    border: 1px solid var(--linha);
+    border-radius: 18px;
+    padding: 1.1rem 1.15rem 1.15rem;
+    margin: 0 0 0.9rem;
+    box-shadow: var(--sombra);
+    scroll-margin-top: 12.5rem;
+  }
+  .card.acertou { border-color: #b7dfc8; }
+  .card.errou { border-color: #f0c2ce; }
+  .fora { display: none; }
+  .card-h { display: flex; gap: 0.75rem; align-items: flex-start; }
+  .num {
+    font-family: Fraunces, Georgia, serif;
+    font-size: 1.35rem;
+    color: var(--terracota);
+    min-width: 2.5rem;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .card-tit { flex: 1; min-width: 0; }
+  .tema-q {
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--suave);
+    font-weight: 700;
+  }
+  h2 {
+    margin: 0.05rem 0 0;
+    font-family: Fraunces, Georgia, serif;
+    font-size: 1.32rem;
+    font-weight: 560;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+  .origem { margin: 0.2rem 0 0; color: var(--suave); font-size: 0.9rem; }
+  .badge {
+    margin-left: auto;
+    border: 1px solid #e7b2a0;
+    color: var(--terracota);
+    border-radius: 999px;
+    padding: 0.12rem 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .texto {
+    margin: 0.9rem 0 0;
+    padding: 0.85rem 1rem;
+    background: #f7f0e6;
+    border-radius: 12px;
+  }
+  .texto-rotulo {
+    margin: 0 0 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #7c5b45;
+  }
+  .texto p, .enunciado p, .corpo p { margin: 0.4rem 0; }
+  .enunciado p:first-child { margin-top: 0.85rem; }
+  .enunciado, .texto, .opcao, .corpo { overflow-wrap: break-word; }
+  .opcoes { display: grid; gap: 0.45rem; margin-top: 0.85rem; }
+  .opcao {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    background: #fffdf8;
+    border: 1.5px solid #e7d9c8;
+    border-radius: 14px;
+    padding: 0.72rem 0.85rem;
+  }
+  .opcao:hover:not(:disabled) { border-color: #c4a484; background: #fff; }
+  .opcao:disabled { cursor: default; }
+  .bolha {
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #f3e6d4;
+    font-weight: 700;
+    color: #5c4636;
+  }
+  .veredito { font-size: 0.78rem; font-weight: 700; }
+  .opcao.correta { background: var(--verde-bg); border-color: var(--verde); }
+  .opcao.correta .bolha { background: var(--verde); color: white; }
+  .opcao.correta .veredito { color: #145c38; }
+  .opcao.errada { background: var(--rosa-bg); border-color: var(--rosa); }
+  .opcao.errada .bolha { background: var(--rosa); color: white; }
+  .opcao.errada .veredito { color: var(--rosa); }
+  .explica {
+    margin-top: 0.9rem;
+    padding: 0.85rem 1rem;
+    background: #f8f1e6;
+    border-left: 3px solid var(--terracota);
+    border-radius: 0 12px 12px 0;
+  }
+  .explica.ok { border-left-color: var(--verde); background: #f3faf6; }
+  .explica .resultado { margin: 0 0 0.35rem; font-weight: 700; }
+  .rodape {
+    color: var(--suave);
+    font-size: 0.92rem;
+    padding: 0.4rem 0.2rem 0;
+  }
+  @media (max-width: 640px) {
+    .barra { flex-wrap: wrap; }
+    .acoes { width: 100%; }
+    .ticket { margin-left: auto; }
+    h2 { font-size: 1.18rem; }
+    .temas { flex-wrap: nowrap; overflow-x: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+<header class="topo">
+  <div class="barra">
+    <div class="marca">
+      <p class="kicker">Licitações · demais matérias</p>
+      <h1>Treino da prova</h1>
+    </div>
+    <div class="ticket" aria-live="polite">
+      <strong id="acertos">0</strong>
+      <span id="rotulo-acertos">acertos</span>
+      <span id="detalhe">0 respondidas</span>
+    </div>
+    <div class="acoes">
+      <button type="button" class="btn" id="proxima">Próxima</button>
+      <button type="button" class="btn" id="recomecar">Recomeçar</button>
+      <div id="dialogo" class="dialogo" hidden>
+        <p>Apagar todas as respostas e zerar o placar?</p>
+        <div class="acoes">
+          <button type="button" class="btn" id="cancelar">Cancelar</button>
+          <button type="button" class="btn btn-apagar" id="apagar">Apagar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="dica" id="dica">A primeira escolha entra no placar. Acerte ou erre, a explicação abre.</p>
+  <div class="trilha" aria-hidden="true"><span id="barra-ok"></span><span id="barra-erro"></span></div>
+  <nav class="temas" id="temas" aria-label="Temas"></nav>
+</header>
+<main id="lista"></main>
+<footer class="rodape" style="width:min(760px, calc(100% - 1.6rem)); margin: -2rem auto 2.5rem;">
+  <p>Cem questões de treino, no padrão de prova. Nenhuma é cópia de prova oficial. Os valores de dispensa e de contrato verbal são os de 2026, do Decreto 12.807/2025. O placar conta a prova inteira, mesmo quando um tema está filtrado. Português fica em outra página.</p>
+</footer>
+<script type="application/json" id="dados">[{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":1,"titulo":"Cinco modalidades","real":false,"gabarito":"C","texto":null,"enunciado":["A Lei 14.133/2021 prevê cinco modalidades de licitação. Assinale a alternativa que contém apenas modalidades ainda vigentes."],"opcoes":["Convite, tomada de preços e concorrência","Pregão, concorrência e registro de preços","Pregão, concorrência, concurso, leilão e diálogo competitivo","Pregão, RDC, concurso e leilão","Carta-convite, pregão e diálogo competitivo"],"explica":["O art. 28 lista só essas cinco: pregão, concorrência, concurso, leilão e diálogo competitivo. Convite, tomada de preços e RDC deixaram de existir como modalidades. Registro de preços é procedimento auxiliar, não modalidade. A lei veda criar modalidade nova ou misturar as cinco."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":2,"titulo":"Papel sulfite","real":false,"gabarito":"A","texto":null,"enunciado":["A prefeitura vai comprar resmas de papel sulfite, com qualidade descrita por especificações usuais de mercado. A modalidade adequada é:"],"opcoes":["Pregão","Concorrência, porque toda compra da prefeitura é concorrência","Concurso","Leilão","Diálogo competitivo"],"explica":["Bem comum, com padrão objetivo de mercado, vai a pregão. Concorrência não é a modalidade de toda compra. Concurso escolhe trabalho técnico, científico ou artístico e paga prêmio ou remuneração. Leilão aliena bens. Diálogo competitivo serve quando a administração não consegue especificar a solução sozinha."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":3,"titulo":"Obra nova","real":false,"gabarito":"E","texto":null,"enunciado":["A construção de um bloco novo de salas, com alteração substancial do imóvel, deve ser licitada, em regra, por:"],"opcoes":["Pregão, porque obra também é serviço comum","Leilão","Concurso","Inexigibilidade, porque só uma construtora da cidade tem equipamento","Concorrência"],"explica":["Obra não cabe em pregão. O art. 29 afasta o pregão de obras e de serviços de engenharia, com uma exceção apenas para serviço comum de engenharia. Construir um bloco novo é obra e segue a concorrência. Existir uma construtora conhecida na cidade não torna a competição inviável."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":4,"titulo":"Serviço comum de engenharia","real":false,"gabarito":"B","texto":null,"enunciado":["A manutenção padronizada de aparelhos de ar-condicionado, que preserva as características originais dos equipamentos, é:"],"opcoes":["Sempre obra, e por isso só cabe concorrência","Serviço comum de engenharia, e o pregão pode ser usado","Diálogo competitivo, porque envolve engenharia","Leilão","Concurso de projeto artístico"],"explica":["Serviço comum de engenharia é manutenção, adequação ou adaptação objetivamente padronizável, sem mudar a característica original do bem. Essa é a exceção do art. 29: o pregão alcança esse serviço de engenharia. Obra, que inova o espaço ou altera o imóvel de modo substancial, continua fora do pregão."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":5,"titulo":"Artista consagrado","real":false,"gabarito":"D","texto":null,"enunciado":["A contratação direta de um cantor consagrado pela crítica, por meio de empresário exclusivo, para um evento oficial, é hipótese de:"],"opcoes":["Modalidade concurso","Dispensa por pequeno valor, qualquer que seja o cachê","Leilão","Inexigibilidade de licitação","Diálogo competitivo"],"explica":["Quando a competição é inviável, o caso é inexigibilidade. O art. 74 alcança o profissional do setor artístico consagrado pela crítica ou pela opinião pública, contratado diretamente ou por empresário exclusivo. A modalidade concurso escolhe um trabalho mediante prêmio. Ela não serve para contratar um artista já definido."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":6,"titulo":"Fornecedor exclusivo","real":false,"gabarito":"A","texto":null,"enunciado":["Só um fabricante fornece a peça que mantém a garantia do equipamento, e a exclusividade está demonstrada por documento idôneo. A contratação direta é:"],"opcoes":["Inexigibilidade, por inviabilidade de competição","Dispensa por pequeno valor, qualquer que seja o preço","Licitação na modalidade convite","Leilão","Dispensa de emergência, ainda que não haja urgência"],"explica":["Fornecedor exclusivo torna a disputa inviável: é inexigibilidade do art. 74. A administração demonstra isso com atestado, contrato, declaração do fabricante ou outro documento idôneo, e não pode usar a exclusividade como desculpa para preferir marca. Dispensa por valor tem teto. Emergência exige risco concreto, não apenas uma peça exclusiva."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":7,"titulo":"Cadeiras inservíveis","real":false,"gabarito":"C","texto":null,"enunciado":["A alienação de cadeiras inservíveis do almoxarifado, para quem oferecer mais, usa a modalidade e o critério:"],"opcoes":["Pregão e menor preço","Concorrência e maior desconto","Leilão e maior lance","Concurso e melhor técnica","Diálogo competitivo e maior retorno econômico"],"explica":["Leilão é a modalidade de alienação de móveis inservíveis ou legalmente apreendidos e também de imóveis. O critério é o maior lance. Menor preço e maior desconto servem para comprar, não para vender. Concurso não vende estoque."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":8,"titulo":"Solução que o órgão não especifica","real":false,"gabarito":"B","texto":null,"enunciado":["O órgão precisa de uma solução tecnológica que ainda não consegue especificar com precisão, e as alternativas de mercado terão de ser adaptadas. A modalidade própria é:"],"opcoes":["Pregão","Diálogo competitivo","Leilão","Concurso","Tomada de preços"],"explica":["O diálogo competitivo, art. 32, cabe quando a administração não define a solução com a precisão exigida, quando há inovação tecnológica ou técnica, ou quando o mercado precisa adaptar o que já oferece. Pregão exige objeto comum, já descritível por padrão de mercado. Alto valor, sozinho, não justifica diálogo."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":9,"titulo":"Critérios de julgamento","real":false,"gabarito":"E","texto":null,"enunciado":["É critério de julgamento previsto no art. 33 da Lei 14.133:"],"opcoes":["Melhor lance, em qualquer modalidade","Menor técnica","Convite com menor preço","Maior desconto apenas no leilão","Maior desconto"],"explica":["Os critérios são menor preço, maior desconto, melhor técnica ou conteúdo artístico, técnica e preço, maior lance no leilão e maior retorno econômico. Melhor lance não é o nome legal. Maior desconto não é exclusivo do leilão: no leilão o critério é o maior lance."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":10,"titulo":"Ordem das fases","real":false,"gabarito":"D","texto":null,"enunciado":["Na regra da Lei 14.133, depois da apresentação das propostas, a ordem é:"],"opcoes":["Habilitação de todos, depois julgamento, depois recurso","Homologação, depois julgamento, depois habilitação","Recurso, depois habilitação, depois julgamento","Julgamento, depois habilitação de quem ficou na frente, depois fase recursal e homologação","Habilitação, julgamento e leilão"],"explica":["O art. 17 põe o julgamento antes da habilitação. Em regra só se examina a habilitação de quem ficou mais bem classificado. As fases são preparatória, divulgação do edital, propostas e lances, julgamento, habilitação, recursal e homologação. A fase recursal é única."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":11,"titulo":"Inversão de fases","real":false,"gabarito":"A","texto":null,"enunciado":["Fazer a habilitação antes do julgamento:"],"opcoes":["Só cabe se a escolha for motivada e estiver prevista no edital","É a regra de toda concorrência","É obrigatório no pregão","Dispensa motivação","Substitui a homologação"],"explica":["Inverter as fases é exceção do art. 17, parágrafo 1º. A administração precisa motivar o benefício da medida e escrever a inversão no edital. No rito comum, inclusive no pregão, continua valendo julgar antes de habilitar."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":12,"titulo":"Dispensa e inexigibilidade","real":false,"gabarito":"C","texto":null,"enunciado":["Assinale a afirmação correta."],"opcoes":["Dispensa e inexigibilidade são a mesma coisa","Inexigibilidade é a escolha livre quando a disputa é possível","Na dispensa a disputa é possível, mas a lei autoriza não a fazer; na inexigibilidade a disputa é inviável","Dispensa não precisa de motivação nem de estimativa de preço","Inexigibilidade depende só do valor baixo"],"explica":["Dispensa, art. 75, é a exceção em que haveria competição, mas a lei autoriza contratar direto, como no pequeno valor ou na emergência. Inexigibilidade, art. 74, ocorre quando não há como competir, como no fornecedor exclusivo ou no artista consagrado. As duas exigem processo, motivo e estimativa de preço. Valor baixo, sozinho, não cria inexigibilidade."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":13,"titulo":"Compra de R$ 60 mil em 2026","real":false,"gabarito":"B","texto":null,"enunciado":["Em 2026, pelo Decreto 12.807/2025, uma compra de material de expediente de R$ 60.000,00, isolada e dentro do somatório anual da unidade gestora, pode ser feita por:"],"opcoes":["Concorrência obrigatória, porque passou de R$ 50.000,00","Dispensa por valor, porque está abaixo de R$ 65.492,11","Inexigibilidade automática","Contratação de grande vulto","Leilão"],"explica":["O teto de dispensa para outros serviços e compras, art. 75, II, está em R$ 65.492,11 em 2026. A lei fala em valores inferiores a esse limite. R$ 60.000,00 cabe. O número de R$ 50.000,00 é o texto original de 2021, já reajustado todo ano pelo IPCA-E. Grande vulto, em 2026, supera R$ 261.968.421,04."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":14,"titulo":"Valor exatamente no teto","real":false,"gabarito":"E","texto":null,"enunciado":["Uma compra de outros serviços no valor exato de R$ 65.492,11, em 2026:"],"opcoes":["Cabe na dispensa por valor, porque a lei diz até esse montante","Vira inexigibilidade automática","Exige contrato verbal","Dispensa pesquisa de preço","Não cabe na dispensa por valor do art. 75, II, porque o limite legal é inferior a esse valor"],"explica":["O inciso II alcança valores inferiores ao limite atualizado. O valor igual ao teto não é inferior, então não entra nessa dispensa. A disputa continua possível: o caminho é licitar. Igualar o teto também não elimina a estimativa de preço nem transforma o ajuste em contrato verbal."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":15,"titulo":"Obra de R$ 140 mil","real":false,"gabarito":"C","texto":null,"enunciado":["Em 2026, uma obra de R$ 140.000,00:"],"opcoes":["Cabe em dispensa por valor, porque obras vão até R$ 200.000,00","Cabe em dispensa por valor, porque o teto de obras inclui R$ 140.000,00","Não cabe em dispensa por valor, porque o teto de obras e serviços de engenharia é inferior a R$ 130.984,20","Exige diálogo competitivo","Cabe em leilão"],"explica":["O art. 75, I, atualizado pelo Decreto 12.807/2025, alcança obras e serviços de engenharia de valor inferior a R$ 130.984,20. R$ 140.000,00 passou desse teto. O número original de R$ 100.000,00 também já foi atualizado. Obra acima do teto segue licitação, em regra por concorrência."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":16,"titulo":"Fracionamento","real":false,"gabarito":"A","texto":null,"enunciado":["Para ficar abaixo do teto de dispensa, o setor divide a compra do mesmo material, no mesmo exercício e na mesma unidade gestora, em três notas. Isso:"],"opcoes":["É fracionamento indevido; a lei manda somar, no exercício, o que for gasto com objetos da mesma natureza","É permitido, porque cada nota é um processo autônomo","Transforma a compra em inexigibilidade","Obriga a modalidade leilão","Dispensa motivação em cada nota"],"explica":["O art. 75, parágrafo 1º, soma o que a unidade gestora despende no exercício financeiro com objetos do mesmo ramo de atividade. Dividir de propósito para escapar da licitação não cria várias dispensas válidas. O somatório é que se compara com o teto."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":17,"titulo":"Teto dobrado","real":false,"gabarito":"D","texto":null,"enunciado":["Consórcio público e autarquia ou fundação qualificada como agência executiva:"],"opcoes":["Não podem dispensar licitação por valor","Usam a metade dos tetos do art. 75","Estão fora da Lei 14.133 em qualquer compra","Têm duplicados os valores dos incisos I e II do art. 75","Licitam apenas por leilão"],"explica":["O parágrafo 2º do art. 75 duplica os tetos de obras e de compras para consórcio público e para autarquia ou fundação qualificada como agência executiva. Em 2026 os limites duplicados ficam inferiores a R$ 261.968,40 e a R$ 130.984,22. A palavra continua sendo inferiores a. Duplicar o teto não autoriza fracionar."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":18,"titulo":"Emergência","real":false,"gabarito":"B","texto":null,"enunciado":["Na dispensa por emergência ou calamidade, a Lei 14.133:"],"opcoes":["Permite prorrogar o contrato quantas vezes forem precisas","Limita as parcelas de obras e serviços ao que possa ser concluído em até 1 ano, veda a prorrogação desse contrato e veda recontratar a mesma empresa com base nesse inciso","Dispensa justificativa de preço","Serve para renovar o estoque anual ordinário","Substitui o planejamento da contratação definitiva"],"explica":["O art. 75, VIII, atende situação urgente que possa causar prejuízo ou parar o serviço, ou ameaçar pessoas e bens. A parcela emergencial tem de caber em até 1 ano contado da ocorrência. O contrato não se prorroga e a mesma empresa não é recontratada por esse fundamento. A administração segue o processo da solução definitiva."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":19,"titulo":"PNCP e eficácia","real":false,"gabarito":"C","texto":null,"enunciado":["Sobre o Portal Nacional de Contratações Públicas, assinale a alternativa correta."],"opcoes":["A divulgação no PNCP substitui o contrato escrito","Publicar o contrato no PNCP é facultativo e não altera a eficácia","A divulgação do contrato e dos aditamentos no PNCP é, em regra, condição de eficácia, no prazo de 20 dias úteis na licitação e de 10 na contratação direta","O PNCP recebe apenas leilão de imóveis","Contrato de urgência não precisa ser publicado"],"explica":["Pelo art. 94, a divulgação no PNCP é condição indispensável para a eficácia do contrato e dos aditamentos. O prazo, contado da assinatura, é de 20 dias úteis na licitação e de 10 na contratação direta. Na urgência, o contrato produz efeito desde a assinatura, mas ainda tem de ser publicado nesse prazo, sob pena de nulidade. O edital, pelo art. 54, também vai ao PNCP no inteiro teor, além do extrato no diário oficial."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":20,"titulo":"Pregoeiro e comissão","real":false,"gabarito":"C","texto":null,"enunciado":["No pregão da Lei 14.133, o agente que conduz o certame:"],"opcoes":["É um leiloeiro escolhido entre os licitantes","Foi extinto, porque toda licitação agora exige comissão política","Recebe o nome de pregoeiro; se o objeto for bem ou serviço especial, pode ser substituído por comissão de pelo menos três membros","Pode ser o fornecedor consultado na pesquisa de preço","É, necessariamente, o autor do projeto básico"],"explica":["O art. 8º entrega a condução a um agente de contratação, servidor efetivo ou empregado público do quadro permanente, até a homologação. No pregão, esse agente é designado pregoeiro. Ele responde pelos próprios atos, salvo quando a equipe de apoio o induz a erro. Em bens ou serviços especiais, pode ser substituído por comissão de no mínimo três membros, que respondem solidariamente, exceto quem registrar divergência fundamentada."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":21,"titulo":"Autor do projeto","real":false,"gabarito":"A","texto":null,"enunciado":["A empresa que elaborou o projeto básico de uma obra, em regra:"],"opcoes":["Não pode disputar a licitação nem executar o contrato relacionado a esse projeto","Tem preferência automática de 10% sobre o menor preço","Deve ser contratada por inexigibilidade, como única interessada","Escolhe o vencedor na sessão","Participa normalmente, porque fez o projeto a pedido da administração"],"explica":["O art. 14, I, afasta o autor do anteprojeto, do projeto básico ou do projeto executivo da disputa e da execução quando o objeto se relaciona a esse projeto. Empresa do mesmo grupo econômico é tratada como autora. A administração pode usar o autor apenas no apoio ao planejamento, à licitação ou à gestão, a serviço dela e sob supervisão exclusiva de agentes públicos. Também é possível licitar obra cujo encargo já inclua a elaboração do projeto por quem vencer."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":22,"titulo":"Sanções","real":false,"gabarito":"D","texto":null,"enunciado":["A sanção da Lei 14.133 que ocupou o lugar da antiga suspensão temporária de licitar é:"],"opcoes":["Advertência, pelo prazo fixo de 6 anos","Multa, que sozinha impede nova licitação em todo o país","Declaração de inidoneidade, sempre de 1 ano","Impedimento de licitar e contratar, por até 3 anos, no âmbito do ente que o aplicou","Perdimento de bens, decidido pelo pregoeiro na sessão"],"explica":["O art. 156 prevê advertência, multa, impedimento de licitar e contratar e declaração de inidoneidade. O impedimento dura até 3 anos e vale no ente federativo que o aplicou. A declaração de inidoneidade dura de 3 a 6 anos e alcança a administração pública de todos os entes. A multa pode ser aplicada junto com as outras. O nome suspensão temporária não é mais o da lei."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":23,"titulo":"Prazo de recurso","real":false,"gabarito":"B","texto":null,"enunciado":["O prazo para recurso na licitação da Lei 14.133 é de:"],"opcoes":["10 dias, como regra geral da Lei 9.784, também para o julgamento das propostas","3 dias úteis; no julgamento e na habilitação, a intenção de recorrer se manifesta na hora, sob pena de preclusão","30 dias corridos","24 horas para as razões, sem necessidade de manifestar intenção","15 dias úteis para qualquer ato da sessão"],"explica":["O art. 165 fixa 3 dias úteis para o recurso, contados da intimação ou da lavratura da ata. Contra o julgamento das propostas e contra a habilitação ou inabilitação, a intenção de recorrer tem de ser manifestada imediatamente, sob pena de preclusão. O prazo de 10 dias é o do recurso geral da Lei 9.784, do processo administrativo federal, e não substitui a regra da licitação."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":24,"titulo":"Faixa exclusiva de ME e EPP","real":false,"gabarito":"E","texto":null,"enunciado":["A licitação exclusiva para microempresa e empresa de pequeno porte, em itens de até R$ 80.000,00, prevista na Lei Complementar 123/2006:"],"opcoes":["Foi elevada para R$ 130.984,20 pelo Decreto 12.807/2025","Foi revogada pela Lei 14.133","Só existe no leilão","Corresponde a 5% do valor da obra","Continua no valor da lei complementar; o decreto anual da Lei 14.133 não reajusta esse teto"],"explica":["O art. 48, I, da LC 123/2006 reserva itens de até R$ 80.000,00 à participação exclusiva de ME e EPP, observadas as exceções da própria lei complementar, como a falta de pelo menos três fornecedores. O Decreto 12.807 atualiza valores da Lei 14.133, não esse teto. A Lei 14.133, no art. 4º, manda aplicar os arts. 42 a 49 da LC 123."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":25,"titulo":"Empate ficto","real":false,"gabarito":"C","texto":null,"enunciado":["No pregão, a faixa em que a proposta de ME ou EPP é tratada como empatada com a melhor é de:"],"opcoes":["Até 10% acima da melhor proposta","Até 20% acima da melhor proposta","Até 5% acima da melhor proposta, se essa melhor proposta não for de ME ou EPP","Qualquer diferença, desde que a empresa seja do município","Até 5% só na concorrência de obra; no pregão a faixa é de 10%"],"explica":["Pelo art. 44 da LC 123, fica empatada a proposta de ME ou EPP igual ou até 10% superior à mais bem classificada. No pregão, o art. 44, parágrafo 2º, reduz a faixa para até 5%. O benefício só abre se a primeira colocada não for ME ou EPP: a pequena empresa pode então cobrir o preço. O art. 60, parágrafo 2º, da Lei 14.133 preserva essa preferência antes dos critérios gerais de desempate."]},{"tema":"Lei 14.133","origem":"Treino · padrão de concurso de licitações","n":26,"titulo":"Modos de disputa","real":false,"gabarito":"A","texto":null,"enunciado":["Os modos de disputa de lances admitidos na Lei 14.133 incluem:"],"opcoes":["Aberto, fechado e as combinações aberto e fechado e fechado e aberto","Apenas o modo aberto, porque o fechado foi revogado","Apenas carta-convite","Maior lance em todo pregão","Sorteio como modo principal"],"explica":["A disputa pode ser aberta, com lances públicos e sucessivos, ou fechada, com proposta sigilosa. A lei também admite combinar os dois modos, aberto e fechado ou fechado e aberto. Sorteio não é modo de disputa. Maior lance é critério de julgamento do leilão, não um modo de disputa do pregão."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":27,"titulo":"Contrato escrito","real":false,"gabarito":"B","texto":null,"enunciado":["O contrato administrativo, na Lei 14.133:"],"opcoes":["É sempre verbal, para ganhar tempo","É escrito; o verbal só cabe em pequena compra ou serviço de pronto pagamento, até o limite do art. 95, parágrafo 2º","Pode ser verbal em obra de qualquer valor","Dispensa assinatura quando houver nota de empenho de obra","É substituído pelo edital"],"explica":["A regra é o instrumento escrito. O contrato verbal fica restrito a pequenas compras e serviços de pronto pagamento, que não gerem obrigação para exercício futuro, até o valor atualizado do art. 95, parágrafo 2º. Obra não se contrata de boca. O edital rege a licitação; não substitui o contrato."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":28,"titulo":"Teto do contrato verbal","real":false,"gabarito":"D","texto":null,"enunciado":["Em 2026, o limite do contrato verbal de pronto pagamento, atualizado pelo Decreto 12.807/2025, é:"],"opcoes":["R$ 65.492,11","R$ 130.984,20","R$ 80.000,00","R$ 13.098,41","R$ 261.968.421,04"],"explica":["O art. 95, parágrafo 2º, foi atualizado para R$ 13.098,41. R$ 65.492,11 é o teto de dispensa de outros serviços e compras. R$ 130.984,20 é o de obras e serviços de engenharia. R$ 80.000,00 é a faixa de licitação exclusiva de ME e EPP na LC 123. O valor de centenas de milhões é o de grande vulto."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":29,"titulo":"Serviço contínuo","real":false,"gabarito":"A","texto":null,"enunciado":["Serviços e fornecimentos contínuos podem ter vigência:"],"opcoes":["De até 5 anos no período inicial, com prorrogações que não passem de 10 anos no total, quando houver vantagem para a administração","De 10 anos já no primeiro instrumento, sem justificativa","Apenas de 12 meses, sempre improrrogáveis","Indeterminada, com renovação automática no vencimento","De 30 anos, no mesmo regime da concessão comum"],"explica":["A lei permite duração de até 5 anos para serviços e fornecimentos contínuos e prorrogações sucessivas até o teto de 10 anos, demonstrada a vantagem. Não há renovação automática. Cada prorrogação precisa de instrumento e de motivo. Concessão de serviço público é outro regime."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":30,"titulo":"Três formas de mexer no preço","real":false,"gabarito":"E","texto":null,"enunciado":["A atualização pelo índice previsto no contrato, a recomposição da mão de obra depois do acordo coletivo e o restabelecimento da equação por fato imprevisível correspondem, nesta ordem, a:"],"opcoes":["Reequilíbrio, reajuste e repactuação","Repactuação, reequilíbrio e reajuste","Três nomes do mesmo instituto","Multa, sanção e glosa","Reajuste, repactuação e reequilíbrio econômico-financeiro"],"explica":["Reajuste recomposição pela inflação, com índice já escrito no contrato. Repactuação é própria de serviço contínuo com dedicação exclusiva ou predominância de mão de obra, depois de convenção, acordo ou dissídio, com demonstração analítica. Reequilíbrio cobre a álea extraordinária, o fato imprevisível que quebra a equação do contrato. Não são sinônimos."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":31,"titulo":"Recebimento","real":false,"gabarito":"C","texto":null,"enunciado":["O recebimento do objeto, na rotina de obras e de serviços, ocorre:"],"opcoes":["Só de forma definitiva, no dia da nota fiscal","Só de forma provisória, e esse ato já quita o contrato para sempre","Primeiro de forma provisória, para conferência, e depois de forma definitiva","Pelo protocolo, que substitui o fiscal","Pelo licitante que ficou em segundo lugar"],"explica":["O recebimento provisório permite conferir quantidade e qualidade no prazo do contrato. O definitivo aceita o objeto. Ele não apaga defeito oculto nem a garantia contratual. Protocolo registra a entrada do documento; não recebe obra nem serviço."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":32,"titulo":"Gestor e fiscal","real":false,"gabarito":"B","texto":null,"enunciado":["Gestor do contrato e fiscal do contrato:"],"opcoes":["São obrigatoriamente o mesmo servidor, por economia","Têm papéis distintos: o fiscal acompanha a execução e o gestor conduz os encaminhamentos administrativos do contrato","São sempre o pregoeiro que abriu a sessão","Não podem ser servidores efetivos","Decidem sozinhos a dispensa de licitação"],"explica":["A lei e o regulamento separam as funções para que a mesma pessoa não execute, confira e decida tudo. O fiscal aponta falha, mede e registra o que foi feito. O gestor cobra providência e encaminha pagamento, alteração e sanção. O contratado não fiscaliza o próprio contrato."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":33,"titulo":"25% e 50%","real":false,"gabarito":"D","texto":null,"enunciado":["Na alteração unilateral de quantidades, o contratado é obrigado a aceitar, nas mesmas condições:"],"opcoes":["Acréscimo sem limite","Até 50% em qualquer compra de material","Até 10% em obra e 25% em reforma","Até 25% do valor inicial atualizado em obras, serviços e compras, e, na reforma de edifício ou de equipamento, acréscimo de até 50%","Apenas supressão, nunca acréscimo"],"explica":["O art. 125 fixa 25% para acréscimos e supressões em obras, serviços e compras, sobre o valor inicial atualizado. Os 50% são só para acréscimo em reforma de edifício ou de equipamento, não para supressão nem para compra comum. A alteração não pode desfigurar o objeto."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":34,"titulo":"Subcontratação","real":false,"gabarito":"A","texto":null,"enunciado":["A subcontratação na Lei 14.133:"],"opcoes":["Só é admitida se o edital permitir, e o contratado continua responsável perante a administração","É livre, e transfere toda a responsabilidade ao terceiro","É obrigatória em 30% de todo contrato","Dispensa previsão no edital quando o preço for menor","Transforma o subcontratado em órgão público"],"explica":["Sem cláusula no edital, não se subcontrata. Mesmo quando a cláusula existe, a administração cobra do contratado original. Parcela de maior relevância técnica que o edital vedou não passa a terceiro. Subcontratar não cria um órgão público."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":35,"titulo":"Garantia do contrato","real":false,"gabarito":"E","texto":null,"enunciado":["A garantia de execução do contrato:"],"opcoes":["É obrigatória em todo ajuste e sempre de 30% do valor","É escolhida pela administração, sem alternativa para o contratado","Substitui a fiscalização da obra","É devida mesmo quando o edital não a prevê","Pode ser exigida se o edital prever; a regra geral vai até 5% do valor inicial e pode chegar a 10% quando complexidade técnica e risco justificarem"],"explica":["Garantia contratual não é automática: o edital é que a exige, de forma motivada. Em regra o contratado escolhe a modalidade entre as previstas na lei, como caução em dinheiro ou títulos, seguro-garantia ou fiança bancária. O teto comum é 5% do valor inicial do contrato. Sobe até 10% com justificativa de complexidade técnica e de risco. Isso não se confunde com a garantia da proposta, anterior ao contrato."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":36,"titulo":"Glosa","real":false,"gabarito":"C","texto":null,"enunciado":["Glosa, na execução do contrato, é:"],"opcoes":["O reajuste anual pelo índice de inflação","A prorrogação automática do prazo","O desconto do pagamento por serviço não executado, mal executado ou em desacordo com o contrato","A sanção de declaração de inidoneidade","O recebimento definitivo"],"explica":["A fiscalização mede o que foi feito. O que não corresponde ao contrato não se paga: isso é a glosa. Não se confunde com multa, que é sanção, nem com reajuste, que atualiza o preço pelo índice previsto. Recebimento definitivo é a aceitação do objeto, não o nome do desconto."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":37,"titulo":"Medição","real":false,"gabarito":"B","texto":null,"enunciado":["A medição de uma obra serve para:"],"opcoes":["Escolher a modalidade da licitação","Apurar o que foi executado no período e servir de base ao pagamento","Substituir o projeto básico","Declarar a inidoneidade da empresa","Publicar o edital no PNCP"],"explica":["Medir é confrontar o serviço feito com o cronograma, os quantitativos e os preços do contrato. Sem medição não há pagamento correto. A medição não escolhe modalidade, não publica edital e não aplica sanção sozinha: a sanção tem processo próprio."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":38,"titulo":"Extinção unilateral","real":false,"gabarito":"D","texto":null,"enunciado":["A extinção do contrato por ato unilateral e escrito da administração:"],"opcoes":["Não admite defesa nem recurso","É o mesmo que recebimento provisório","Só cabe no leilão","Pode ser objeto de recurso, no prazo de 3 dias úteis","Dispensa motivação quando o fiscal assim preferir"],"explica":["O art. 165 inclui, entre os atos recorríveis no prazo de 3 dias úteis, a extinção do contrato decidida de forma unilateral e escrita. O ato é motivado e respeita o contraditório. Não se confunde com o recebimento do objeto nem com o encerramento natural do prazo."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":39,"titulo":"Prorrogação","real":false,"gabarito":"A","texto":null,"enunciado":["A prorrogação de um contrato contínuo:"],"opcoes":["Exige demonstração de vantagem e instrumento próprio; não ocorre só porque o prazo acabou","Ocorre de pleno direito no dia seguinte ao vencimento","Dispensa verificar se as condições continuam vantajosas","Pode passar de 10 anos sem fundamento legal específico","Transforma o contrato escrito em contrato verbal"],"explica":["Silêncio não prorroga. A administração verifica a manutenção da vantagem, justifica e formaliza o aditivo dentro do prazo e do teto legal. Para serviços e fornecimentos contínuos, as prorrogações não ultrapassam 10 anos no total. O aditivo não converte o ajuste em contrato verbal."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":40,"titulo":"Nota de empenho","real":false,"gabarito":"E","texto":null,"enunciado":["Assinale a alternativa correta sobre a nota de empenho."],"opcoes":["A nota de empenho substitui o projeto básico","O empenho é a sanção de impedimento de licitar","Empenhar encerra a fiscalização","O empenho dispensa a licitação","O empenho reserva a dotação, mas não substitui o contrato escrito nem a fiscalização da execução"],"explica":["Empenho é ato orçamentário: reserva o crédito para a despesa. A obrigação de fazer a obra ou o serviço continua no contrato e nas regras do edital. Pagar sem medir e sem fiscalizar não se justifica pelo empenho. Licitar, quando a lei exige, continua obrigatório."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":41,"titulo":"Equação do contrato","real":false,"gabarito":"C","texto":null,"enunciado":["Um fato extraordinário e imprevisível torna a execução excessivamente onerosa para uma das partes. O instituto próprio é:"],"opcoes":["A empresa abandona a obra sem comunicar, porque o fato rompeu o contrato","Repactuação automática pelo dissídio da categoria","Reequilíbrio econômico-financeiro, para manter a equação original","Glosa do pagamento","Leilão do objeto restante"],"explica":["A equação econômico-financeira do contrato é garantida. Álea extraordinária não se resolve com o índice anual de reajuste, que só cobre a inflação já prevista, nem com a repactuação de mão de obra decorrente de acordo coletivo. O caminho é o reequilíbrio, demonstrado e formalizado. A empresa não larga o serviço por conta própria."]},{"tema":"Contratos","origem":"Treino · padrão de concurso de licitações","n":42,"titulo":"Preço na contratação direta","real":false,"gabarito":"B","texto":null,"enunciado":["Na dispensa e na inexigibilidade, a estimativa de preço:"],"opcoes":["É dispensada, porque não houve lances","Continua necessária, para mostrar que o preço é compatível com o mercado","É feita somente depois do pagamento","Só é exigida no leilão","É substituída pela declaração do fornecedor de que o próprio preço é justo"],"explica":["Contratação direta não é cheque em branco. O processo, art. 72, inclui estimativa da despesa calculada na forma do art. 23, para demonstrar compatibilidade com o mercado. A palavra isolada do fornecedor não basta. A ausência de lances não apaga esse dever."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":43,"titulo":"LIMPE","real":false,"gabarito":"A","texto":null,"enunciado":["O caput do art. 37 da Constituição lista, entre os princípios da administração pública:"],"opcoes":["Legalidade, impessoalidade, moralidade, publicidade e eficiência","Apenas economicidade, planejamento e celeridade","Legalidade, pessoalidade, moralidade e sigilo como regra","Eficiência desde 1988, com publicidade facultativa","Somente legalidade e publicidade"],"explica":["O LIMPE está no caput do art. 37: legalidade, impessoalidade, moralidade, publicidade e eficiência. A eficiência entrou com a Emenda Constitucional 19/1998. A Lei 14.133, no art. 5º, acrescenta princípios da licitação, como planejamento, transparência, vinculação ao edital e julgamento objetivo, sem apagar o LIMPE. Pessoalidade e sigilo como regra não são princípios constitucionais da administração."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":44,"titulo":"Legalidade do agente","real":false,"gabarito":"D","texto":null,"enunciado":["Para o agente público, o princípio da legalidade significa que:"],"opcoes":["Ele pode fazer tudo o que a lei não proíbe, como o particular","A conveniência política substitui a lei do certame","O edital pode contrariar a lei se o procedimento ficar mais rápido","Ele só pode agir quando houver autorização legal","A ordem verbal do superior revoga a lei"],"explica":["No direito privado, o particular faz o que a lei não veda. Na administração é o contrário: só se faz o que a lei permite. Superior hierárquico não manda descumprir a lei, e edital que a contraria é ilegal. Conveniência só existe dentro da margem que a própria lei deixou."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":45,"titulo":"Órgão e entidade","real":false,"gabarito":"C","texto":null,"enunciado":["Uma secretaria municipal sem personalidade jurídica própria:"],"opcoes":["É entidade da administração indireta","É autarquia","Integra a administração direta; a pessoa jurídica é o município","É empresa pública","É fundação de direito privado"],"explica":["Desconcentração cria órgãos dentro da mesma pessoa jurídica. Descentralização cria outra pessoa, como a autarquia. Secretaria, em regra, é órgão do município. Quem contrata e responde é o município. Órgão não tem CNPJ de pessoa distinta nem patrimônio próprio."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":46,"titulo":"Autarquia e sociedade de economia mista","real":false,"gabarito":"E","texto":null,"enunciado":["Assinale a alternativa correta."],"opcoes":["Sociedade de economia mista tem capital exclusivamente público","Empresa pública admite, como regra, controle privado do capital","Autarquia é pessoa jurídica de direito privado","Fundação pública de direito público nasce de contrato particular","Autarquia é pessoa de direito público criada por lei; sociedade de economia mista tem capital público e privado, com controle estatal"],"explica":["Autarquia nasce por lei e tem personalidade de direito público, para atividade típica de Estado. Empresa pública tem personalidade de direito privado e capital integralmente público. Sociedade de economia mista também é de direito privado, admite capital privado e mantém o controle do Estado. Fundação pública de direito público igualmente depende de lei."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":47,"titulo":"Qual lei a estatal usa","real":false,"gabarito":"B","texto":null,"enunciado":["A compra de material de expediente feita por uma empresa pública federal segue, como regra:"],"opcoes":["A Lei 14.133 em todo caso, sem ressalva","A Lei 13.303/2016, porque empresa pública e sociedade de economia mista ficam fora da Lei 14.133","Nenhuma lei de licitação","A Lei 8.666, que continua em vigor para estatais","Contrato verbal obrigatório"],"explica":["O art. 1º, parágrafo 1º, da Lei 14.133 afasta empresas públicas, sociedades de economia mista e suas subsidiárias, regidas pela Lei 13.303/2016, ressalvada a regra de transição do art. 178. A Lei 8.666 está revogada. Prefeitura, autarquia e fundação pública de direito público licitam pela Lei 14.133."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":48,"titulo":"Ato vinculado","real":false,"gabarito":"A","texto":null,"enunciado":["Ato vinculado e ato discricionário diferem porque:"],"opcoes":["No vinculado a lei fixa a conduta e não há escolha; no discricionário a lei deixa margem de conveniência, dentro de limites","O discricionário não precisa de motivo nem de finalidade","O vinculado pode contrariar a lei se o resultado for útil","Só o ato discricionário admite controle","O discricionário é sempre verbal"],"explica":["Discricionariedade não é liberdade política solta. Motivo, competência, forma e finalidade pública continuam controláveis, assim como a proporcionalidade. O que a lei amarrou, o agente não escolhe. O que a lei deixou em aberto, ele escolhe de forma motivada."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":49,"titulo":"Poder de polícia","real":false,"gabarito":"D","texto":null,"enunciado":["Poder de polícia administrativa é:"],"opcoes":["O mesmo que Polícia Militar","O mesmo que Polícia Civil","A força usada em campanha eleitoral do ocupante do cargo","A atividade da administração que condiciona ou restringe direitos individuais em favor do interesse público, como licença e fiscalização","A competência do pregoeiro para prender o licitante"],"explica":["Polícia administrativa limita liberdade e propriedade pelo interesse público: vigilância sanitária, alvará, fiscalização de postura. Não se confunde com a polícia judiciária nem com a polícia ostensiva. Pregoeiro não prende e não aplica pena criminal."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":50,"titulo":"Improbidade e dolo","real":false,"gabarito":"C","texto":null,"enunciado":["Depois da Lei 14.230/2021, que alterou a Lei 8.429/1992, os atos típicos de improbidade administrativa:"],"opcoes":["Abrangem qualquer erro material, ainda sem dolo","Se configuram por culpa simples em todas as hipóteses","Exigem dolo; a culpa, inclusive a grave, não basta para o enquadramento","Deixaram de existir, porque a lei foi revogada","Só podem ser praticados por agente da União"],"explica":["A Lei 14.230/2021 passou a exigir dolo nos atos de improbidade. Culpa, mesmo grave, não enquadra o agente no tipo. A lei continua válida para a União, os estados, o Distrito Federal e os municípios. Erro de boa-fé não se transforma em improbidade por esse caminho."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":51,"titulo":"Recurso na Lei 9.784","real":false,"gabarito":"E","texto":null,"enunciado":["No processo administrativo federal da Lei 9.784/1999, quando nenhuma lei específica traz outro prazo, o recurso é de:"],"opcoes":["3 dias úteis","24 horas","30 dias corridos","5 dias úteis","10 dias"],"explica":["A Lei 9.784 é a lei geral do processo administrativo da administração pública federal e assegura contraditório e ampla defesa. Sem prazo próprio em lei especial, o recurso é de 10 dias contados da ciência ou da divulgação oficial da decisão. Na licitação, a Lei 14.133 é a lei especial e fixa 3 dias úteis. Município pode ter lei própria de processo."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":52,"titulo":"Estabilidade","real":false,"gabarito":"B","texto":null,"enunciado":["Pela Constituição, o servidor nomeado por concurso para cargo efetivo adquire estabilidade:"],"opcoes":["No dia da posse","Depois de 3 anos de efetivo exercício, com avaliação especial de desempenho","Depois de 2 anos, sem avaliação","Quando passa a ocupar cargo em comissão","Ao completar 12 meses de estágio, mesmo sem avaliação"],"explica":["O art. 41 da Constituição exige três anos de efetivo exercício e avaliação especial de desempenho. Servidor estável só perde o cargo por sentença judicial transitada em julgado ou por processo administrativo em que lhe seja assegurada ampla defesa. Cargo em comissão não gera estabilidade."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":53,"titulo":"Cargo em comissão","real":false,"gabarito":"A","texto":null,"enunciado":["Cargo em comissão:"],"opcoes":["É de livre nomeação e exoneração, destinado a direção, chefia ou assessoramento, e não dá estabilidade","Exige concurso e gera estabilidade em 3 anos","Só existe na empresa privada","Impede a exoneração durante o mandato do chefe do Poder","É o mesmo que emprego público de sociedade de economia mista"],"explica":["A Constituição reserva o cargo em comissão a direção, chefia e assessoramento. A nomeação e a exoneração são livres, e não há estabilidade. Função burocrática permanente, que deveria ser cargo efetivo, não se preenche por comissão só para evitar o concurso. Percentuais da lei podem reservar parte desses cargos a servidores de carreira."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":54,"titulo":"Bens públicos","real":false,"gabarito":"D","texto":null,"enunciado":["Rua, prédio da prefeitura onde funciona a secretaria e terreno municipal sem destinação pública são, nesta ordem, bens:"],"opcoes":["Dominical, de uso comum do povo e de uso especial","De uso especial, dominical e de uso comum do povo","Todos dominicais","De uso comum do povo, de uso especial e dominical","Todos de uso comum do povo"],"explica":["Uso comum do povo: rua, praça, estrada, abertos ao público. Uso especial: o bem usado pelo próprio serviço, como a escola e a sede do órgão. Dominical: patrimônio disponível, sem afetação a uso público, alienável na forma da lei, com interesse público, avaliação e, em regra, licitação."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":55,"titulo":"Regra constitucional","real":false,"gabarito":"C","texto":null,"enunciado":["O art. 37, XXI, da Constituição:"],"opcoes":["Proíbe a licitação","Deixa a licitação ao critério exclusivo do prefeito, sem lei","Exige licitação para obras, serviços, compras e alienações, ressalvados os casos previstos em lei","Vale apenas para a União","Foi revogado pela Lei 14.133"],"explica":["Licitar é a regra constitucional para obras, serviços, compras e alienações. A lei, hoje a 14.133 para a administração direta, autárquica e fundacional, regulamenta o procedimento e lista exceções, que se leem de forma estrita. A lei não revoga a Constituição."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":56,"titulo":"Vinculação ao edital","real":false,"gabarito":"E","texto":null,"enunciado":["O princípio da vinculação ao edital significa que:"],"opcoes":["O pregoeiro pode exigir, na sessão, documento que o edital não pediu","A proposta pode oferecer objeto diferente do descrito, se for mais barato","O edital pode ser mudado na sessão, sem avisar os licitantes","Só o licitante está vinculado; a administração altera a regra quando quiser","Administração e licitantes obedecem às regras escritas no edital, que é a lei daquele certame"],"explica":["O que o edital não pediu não se cobra na hora. Mudança relevante exige retificação publicada, com reabertura de prazo quando a alteração afetar a formulação das propostas. Exigência surpresa fere a vinculação ao edital e o julgamento objetivo."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":57,"titulo":"Marca no edital","real":false,"gabarito":"B","texto":null,"enunciado":["Indicar uma marca no edital, sem justificativa técnica:"],"opcoes":["É a regra, para padronizar a preferência do setor","Fere a competição e a impessoalidade; marca só se admite nas hipóteses restritas da lei, como padronização justificada","É obrigatória em todo pregão","Transforma a licitação em inexigibilidade","Dispensa o termo de referência"],"explica":["O objeto se descreve por desempenho e qualidade usuais de mercado. Marca fechada, sem motivo, direciona o certame a um fornecedor e fere a impessoalidade. A lei admite indicação justificada, como a padronização de um parque já instalado, em regra com admissão de produto equivalente. O termo de referência continua necessário."]},{"tema":"Direito administrativo","origem":"Treino · padrão de concurso de licitações","n":58,"titulo":"Segregação de funções","real":false,"gabarito":"A","texto":null,"enunciado":["A segregação de funções, na contratação pública, busca:"],"opcoes":["Evitar que a mesma pessoa controle sozinha todas as etapas, reduzindo erro e fraude","Concentrar planejamento, julgamento, fiscalização e pagamento num único servidor","Impedir a existência de fiscal do contrato","Substituir a licitação por confiança pessoal","Permitir que a empresa vencedora fiscalize a própria execução"],"explica":["Quem especifica, quem conduz a sessão, quem fiscaliza e quem paga não devem ser a mesma mão quando a lei pede separação. O contratado não fiscaliza a si mesmo. Segregar funções organiza o controle; não elimina a licitação nem a motivação dos atos."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":59,"titulo":"Desconto de 15%","real":false,"gabarito":"C","texto":null,"enunciado":["Um item de R$ 80,00 com desconto de 15% sai por:"],"opcoes":["R$ 65,00","R$ 70,00","R$ 68,00","R$ 92,00","R$ 12,00"],"explica":["Quinze por cento de 80 é 12. O preço com desconto é 80 menos 12, ou seja, 68. R$ 92,00 seria acréscimo de 15%, não desconto. R$ 12,00 é só o valor do desconto, não o preço final."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":60,"titulo":"Acréscimo de 20%","real":false,"gabarito":"E","texto":null,"enunciado":["Um valor de R$ 250,00 com acréscimo de 20% passa a:"],"opcoes":["R$ 270,00","R$ 50,00","R$ 290,00","R$ 260,00","R$ 300,00"],"explica":["Vinte por cento de 250 é 50. Somando ao valor original: 250 mais 50 igual a 300. R$ 50,00 é apenas o acréscimo. R$ 270,00 seria acréscimo de R$ 20,00, não de 20%."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":61,"titulo":"Servidores e processos","real":false,"gabarito":"B","texto":null,"enunciado":["Quatro servidores analisam 120 processos em 6 dias, sempre no mesmo ritmo. Seis servidores, no mesmo ritmo, analisam em 4 dias:"],"opcoes":["80 processos","120 processos","160 processos","90 processos","240 processos"],"explica":["Quatro servidores durante 6 dias somam 24 jornadas. 120 processos divididos por 24 dão 5 processos por servidor a cada dia. Seis servidores em 4 dias somam 24 jornadas de novo, logo também analisam 120 processos. Aumentar a equipe e reduzir os dias, nessas proporções, mantém a quantidade."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":62,"titulo":"Partes proporcionais","real":false,"gabarito":"D","texto":null,"enunciado":["R$ 900,00 divididos na razão 2 : 3 : 4 correspondem a:"],"opcoes":["300, 300 e 300","100, 200 e 600","180, 270 e 450","200, 300 e 400","250, 300 e 350"],"explica":["A soma das partes é 2 mais 3 mais 4, igual a 9. Cada parte vale 900 dividido por 9, isto é, 100. As cotas são 200, 300 e 400. A soma fecha 900. Divisão igual daria 300 para cada um, mas a razão não é 1 : 1 : 1."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":63,"titulo":"Média ponderada","real":false,"gabarito":"A","texto":null,"enunciado":["As notas 7 e 8, com pesos 2 e 3, têm média ponderada igual a:"],"opcoes":["7,6","7,5","7,4","8","15"],"explica":["Multiplica-se cada nota pelo peso: 7 vezes 2 é 14, e 8 vezes 3 é 24. A soma é 38. A soma dos pesos é 5. 38 dividido por 5 é 7,6. A média simples seria 7,5, porque ignoraria os pesos."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":64,"titulo":"Conjuntos","real":false,"gabarito":"E","texto":null,"enunciado":["De 30 fornecedores, 18 vendem papel, 14 vendem toner e 8 vendem os dois. Quantos não vendem papel nem toner?"],"opcoes":["2","4","8","10","6"],"explica":["Quem vende só papel: 18 menos 8, igual a 10. Quem vende só toner: 14 menos 8, igual a 6. A união é 10 mais 6 mais 8, igual a 24. Fora dos dois grupos: 30 menos 24, igual a 6. A conta direta é 30 menos 18 menos 14 mais 8, porque a interseção foi tirada duas vezes."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":65,"titulo":"Probabilidade","real":false,"gabarito":"C","texto":null,"enunciado":["Uma urna tem 5 bolas, sendo 3 brancas e 2 pretas. A probabilidade de tirar uma bola branca, num único sorteio, é:"],"opcoes":["2/5","1/2","3/5","3/2","5/3"],"explica":["Probabilidade é o número de casos favoráveis dividido pelo número de casos possíveis. Há 3 bolas brancas em 5 bolas, logo 3/5. 2/5 seria a chance da bola preta. Resultado maior que 1, como 3/2 ou 5/3, não é probabilidade de um sorteio simples."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":66,"titulo":"Percentuais seguidos","real":false,"gabarito":"B","texto":null,"enunciado":["Um preço de R$ 100,00 sobe 10% e, sobre o novo valor, cai 10%. O preço final é:"],"opcoes":["R$ 100,00","R$ 99,00","R$ 90,00","R$ 110,00","R$ 101,00"],"explica":["Dez por cento de 100 são 10, e o preço vai a 110. Dez por cento de 110 são 11. 110 menos 11 é 99. Os percentuais não se anulam porque a segunda conta usa uma base maior. R$ 110,00 seria só o aumento, sem a queda."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":67,"titulo":"Quarenta de duzentos","real":false,"gabarito":"D","texto":null,"enunciado":["40 processos, num total de 200, representam:"],"opcoes":["40%","4%","25%","20%","5%"],"explica":["40 dividido por 200 é 0,2, ou seja, 20%. Quarenta por cento de 200 seriam 80 processos. Quatro por cento seriam 8. Vinte e cinco por cento seriam 50."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":68,"titulo":"Quilômetro","real":false,"gabarito":"A","texto":null,"enunciado":["2,5 km equivalem a:"],"opcoes":["2.500 m","250 m","25.000 m","25 m","250.000 m"],"explica":["Um quilômetro tem 1.000 metros. Duas vezes e meia isso são 2.500 metros. 250 metros seriam 0,25 km. 25.000 metros seriam 25 km."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":69,"titulo":"Litro","real":false,"gabarito":"E","texto":null,"enunciado":["1,5 L equivalem a:"],"opcoes":["15 ml","150 ml","105 ml","15.000 ml","1.500 ml"],"explica":["Um litro tem 1.000 mililitros. Um litro e meio são 1.500 ml. 150 ml seriam 0,15 L. 15.000 ml seriam 15 L."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":70,"titulo":"Ordem das operações","real":false,"gabarito":"C","texto":null,"enunciado":["O valor de 2 + 3 × 4 é:"],"opcoes":["20","24","14","9","12"],"explica":["A multiplicação vem antes da soma. 3 vezes 4 é 12, e 12 mais 2 é 14. O resultado 20 sairia se alguém somasse 2 e 3 antes de multiplicar por 4. Sem parênteses, essa ordem não vale."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":71,"titulo":"Fração de 80","real":false,"gabarito":"B","texto":null,"enunciado":["Três quartos de 80 são:"],"opcoes":["20","60","40","75","70"],"explica":["Um quarto de 80 é 20. Três quartos são 3 vezes 20, igual a 60. Quarenta seria a metade. Vinte é só uma das quatro partes."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":72,"titulo":"Razão simplificada","real":false,"gabarito":"D","texto":null,"enunciado":["A razão de 12 para 18, simplificada, é:"],"opcoes":["3 para 2","6 para 9","4 para 5","2 para 3","12 para 9"],"explica":["Divide-se os dois termos por 6, que é o máximo divisor comum. 12 dividido por 6 é 2, e 18 dividido por 6 é 3. A razão fica 2 para 3. A forma 6 para 9 ainda pode ser simplificada. Inverter a ordem daria 3 para 2, que é outra razão."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":73,"titulo":"Presidente e vice","real":false,"gabarito":"A","texto":null,"enunciado":["Há 5 servidores distintos. O número de formas de escolher presidente e vice, sendo as funções diferentes, é:"],"opcoes":["20","10","25","5","120"],"explica":["A ordem importa: presidente e vice não são a mesma cadeira. Há 5 escolhas para presidente e, depois, 4 para vice. 5 vezes 4 é 20. Se a ordem não importasse, a combinação seria 10. A permutação dos cinco servidores seria 120, e aqui só duas funções são preenchidas."]},{"tema":"Raciocínio lógico","origem":"Treino · padrão de concurso de licitações","n":74,"titulo":"Próximo termo","real":false,"gabarito":"E","texto":null,"enunciado":["Na sequência 2, 5, 8, 11, o próximo termo é:"],"opcoes":["12","13","15","17","14"],"explica":["A diferença entre os termos é constante e vale 3. É uma progressão aritmética. 11 mais 3 é 14. 13 seria soma de 2, e 15 seria soma de 4. A razão não muda no meio da sequência."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":75,"titulo":"Cadeado do navegador","real":false,"gabarito":"B","texto":null,"enunciado":["O cadeado e o endereço HTTPS indicam que:"],"opcoes":["O site é oficial do governo e todo o conteúdo é verdadeiro","A conexão entre o navegador e o site está cifrada; isso, sozinho, não prova que o remetente é honesto","O computador está livre de vírus","Qualquer anexo pode ser aberto sem conferir a origem","A senha do setor pode ser digitada em qualquer página que peça"],"explica":["HTTPS protege o caminho: quem estiver na rede não lê o que trafega. Um golpe também pode ter cadeado. O domínio, o canal já conhecido do órgão e o teor do pedido é que revelam phishing. Cifragem não é antivírus nem certificado de verdade do texto."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":76,"titulo":"Pedido de senha","real":false,"gabarito":"D","texto":null,"enunciado":["Chega um e-mail com o brasão da prefeitura pedindo a senha do sistema para evitar o bloqueio da conta, com um link. A conduta adequada é:"],"opcoes":["Responder com a senha, porque o brasão prova a origem","Encaminhar a senha no grupo do setor","Baixar o anexo executável para conferir o remetente","Não informar a senha e confirmar o pedido por um canal oficial já conhecido","Clicar imediatamente, antes que a conta seja bloqueada"],"explica":["Órgão sério não pede senha por e-mail. Brasão e logotipo se copiam. O caminho é usar o endereço ou o ramal que o setor já conhece, sem aproveitar o link da mensagem suspeita. Anexo executável inesperado não se abre para investigar."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":77,"titulo":"Backup e antivírus","real":false,"gabarito":"A","texto":null,"enunciado":["Backup e antivírus:"],"opcoes":["Fazem tarefas diferentes: o backup copia os dados e o antivírus procura programa malicioso","São o mesmo programa com dois nomes","Dispensam um ao outro","Garantem que o e-mail recebido é verdadeiro","Substituem o uso de senha"],"explica":["Antivírus não devolve um arquivo apagado. Backup não impede a infecção. Os dois se completam. A cópia importante também fica fora da máquina, para sobreviver a um ataque que cifre o disco local. Nenhum dos dois valida o remetente de uma mensagem."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":78,"titulo":"Soma e cifrão","real":false,"gabarito":"E","texto":null,"enunciado":["Na planilha, a fórmula =SOMA(A1:A10) e a referência $A$1 significam:"],"opcoes":["A média de A1 até A10, e uma referência que muda de coluna ao ser copiada","A soma apenas de A1 e de A10, e uma célula bloqueada por senha","A contagem de células com texto, e formatação de moeda","A soma de textos, e um link da internet","A soma dos valores de A1 até A10, inclusive, e uma referência absoluta, que não se desloca quando a fórmula é copiada"],"explica":["Os dois-pontos marcam o intervalo inteiro, da célula A1 à célula A10. O cifrão antes da coluna e antes da linha trava as duas. Sem cifrão, A1 é referência relativa e anda na cópia. Travar só a coluna seria $A1; só a linha, A$1."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":79,"titulo":"Memória RAM","real":false,"gabarito":"C","texto":null,"enunciado":["A memória RAM, comparada com HD ou SSD:"],"opcoes":["Guarda os arquivos depois que o computador desliga","É o sistema operacional","É volátil: perde o conteúdo sem energia e guarda o trabalho em andamento","Substitui a cópia de segurança","É um tipo de vírus de planilha"],"explica":["RAM é memória rápida e temporária. HD e SSD armazenam de forma persistente. Desligar o equipamento apaga a RAM, por isso texto não salvo se perde. Arquivo gravado no disco permanece. Backup é outra cópia, de propósito diferente."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":80,"titulo":"Sistema e aplicativo","real":false,"gabarito":"B","texto":null,"enunciado":["Windows, ou uma distribuição Linux, diante do editor de texto e do navegador, são:"],"opcoes":["Aplicativos de escritório, como o editor e o navegador","O sistema operacional, que administra a máquina; editor e navegador são aplicativos","Programas antivírus","Planilhas de cálculo","Protocolos de correio eletrônico"],"explica":["O sistema operacional controla memória, arquivos, usuários e dispositivos. O aplicativo cumpre uma tarefa: escrever, calcular, abrir página. Sem o sistema, o aplicativo não roda. Antivírus e planilha são programas sobre o sistema, não o sistema em si."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":81,"titulo":"Senha do setor","real":false,"gabarito":"D","texto":null,"enunciado":["Uma prática adequada de senha no setor de compras é:"],"opcoes":["Usar a data de nascimento e deixar o papel colado no monitor","Uma senha só, compartilhada pelo grupo, em todos os sistemas","Enviar a senha por e-mail quando um colega pedir","Senha longa e exclusiva daquele sistema, com verificação em duas etapas quando o sistema oferecer","Desligar a verificação em duas etapas para ganhar tempo na sessão"],"explica":["Senha compartilhada impede saber quem praticou o ato e quebra a separação de funções. Data de nascimento se descobre. A segunda etapa, como um código no celular, segura a conta mesmo se a senha vazar. Pedido de senha por e-mail não se atende."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":82,"titulo":"Anexo executável","real":false,"gabarito":"A","texto":null,"enunciado":["Um anexo de extensão exe, inesperado, ainda que o nome fale em nota fiscal:"],"opcoes":["Não deve ser aberto; arquivo executável pode instalar programa malicioso","É seguro, porque nota fiscal só circula nesse formato","Deve ser aberto para não atrasar o pagamento","É sempre um PDF com o nome trocado e pode ser editado à vontade","Obriga o clique, se o antivírus estiver instalado"],"explica":["Nota fiscal eletrônica circula como XML ou PDF, pelos canais do processo, não como programa. Executável roda código no computador. Na dúvida, confirma-se a compra pelo processo, sem abrir o arquivo. Antivírus reduz risco e não torna o clique obrigatório."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":83,"titulo":"Arquivo na nuvem","real":false,"gabarito":"E","texto":null,"enunciado":["Guardar a planilha de preços na nuvem:"],"opcoes":["Torna o arquivo público e dispensa controle de quem acessa","Elimina a necessidade de senha","Impede qualquer vazamento","Substitui o dever de sigilo da proposta antes da sessão","Continua exigindo controle de acesso; nuvem não significa arquivo público nem fim do sigilo"],"explica":["O arquivo está no servidor de um fornecedor, não solto na rua. Link aberto, permissão errada ou conta sem segunda etapa vazam a proposta. O dever de sigilo do servidor permanece. Nuvem também não substitui uma cópia de segurança pensada pelo setor."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":84,"titulo":"PDF e original","real":false,"gabarito":"C","texto":null,"enunciado":["Sobre o PDF usado para circular edital e proposta, assinale a alternativa correta."],"opcoes":["PDF e documento editável de texto são o mesmo formato e se alteram do mesmo jeito","PDF não pode ser lido em computador do setor","O PDF circula como documento fechado; mudar o conteúdo não é a edição livre de um texto comum, e o arquivo original deve ser preservado","Alterar um PDF oficial dispensa guardar o arquivo recebido","PDF nunca traz link malicioso"],"explica":["O setor circula ato e proposta em PDF para dificultar mudança casual. Alterar uma vírgula sem guardar o original rastreável compromete a integridade do processo. PDF não se edita como o arquivo nativo do editor de texto. Link dentro de PDF também pode ser malicioso."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":85,"titulo":"Atalhos","real":false,"gabarito":"B","texto":null,"enunciado":["Ctrl+C, Ctrl+V e Ctrl+Z fazem, nesta ordem:"],"opcoes":["Colar, copiar e fechar","Copiar, colar e desfazer","Recortar, salvar e abrir","Negrito, itálico e sublinhado","Copiar, recortar e refazer"],"explica":["Ctrl+C copia, Ctrl+V cola e Ctrl+Z desfaz. Recortar é Ctrl+X. Salvar, na maior parte dos programas, é Ctrl+S. Refazer costuma ser Ctrl+Y ou Ctrl+Shift+Z, conforme o programa. Negrito não está nessa sequência."]},{"tema":"Informática","origem":"Treino · padrão de concurso de licitações","n":86,"titulo":"Sequestro de arquivos","real":false,"gabarito":"D","texto":null,"enunciado":["Ransomware é o ataque que:"],"opcoes":["Acelera a rede do setor","Faz backup automático e gratuito dos contratos","Apaga só a senha do e-mail e não atinge arquivos","Cifra os arquivos e exige pagamento para devolver o acesso","É uma modalidade de licitação da Lei 14.133"],"explica":["O programa sequestra os dados e pede resgate. Pagar não garante a chave e financia o golpe. A defesa do setor é não abrir anexo suspeito, manter o sistema atualizado e ter cópia de segurança separada da máquina, para restaurar sem negociar."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":87,"titulo":"Acesso à informação","real":false,"gabarito":"A","texto":null,"enunciado":["Pela Lei de Acesso à Informação, Lei 12.527/2011:"],"opcoes":["O acesso é a regra e o sigilo é exceção prevista em lei","Todo documento de licitação permanece sigiloso para sempre","O cidadão precisa explicar o motivo do pedido","A proposta ainda não aberta já é pública","Dado pessoal do licitante se publica sem limite"],"explica":["A publicidade é a regra. O sigilo depende de hipótese legal, como informação pessoal e o segredo da proposta antes da abertura. O pedido de acesso não exige que o cidadão justifique o motivo. Negar o acesso é que se motiva. Dado pessoal não vai para mural nem para grupo aberto."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":88,"titulo":"Dado pessoal","real":false,"gabarito":"E","texto":null,"enunciado":["Para a Lei Geral de Proteção de Dados, Lei 13.709/2018, é dado pessoal:"],"opcoes":["O CNPJ da prefeitura, sozinho","O número de uma lei","A quantidade de resmas compradas, sem identificar ninguém","O valor do teto de dispensa de licitação","O CPF e o endereço de um sócio do licitante, quando identificam a pessoa natural"],"explica":["Dado pessoal é informação ligada a pessoa natural identificada ou identificável. CNPJ, número de lei e quantidade de material, sem identificar alguém, não são dado pessoal. CPF identifica. Dado sensível é ainda mais restrito e inclui saúde, origem racial ou étnica, convicção religiosa, opinião política, filiação sindical, vida sexual, dado genético e biométrico."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":89,"titulo":"Carro oficial","real":false,"gabarito":"C","texto":null,"enunciado":["Usar o carro oficial, no fim de semana, em viagem particular do servidor:"],"opcoes":["É permitido se ele devolver o combustível na semana seguinte, sem registrar","É direito próprio do cargo em comissão","Desvia bem público e fere a moralidade administrativa","Representa economia para o município","Dispensa autorização porque o carro está vinculado ao setor"],"explica":["Bem público só serve a fim público. Uso particular, mesmo com a intenção de repor o combustível depois, quebra a moralidade e pode ser infração disciplinar ou improbidade. Autorização formal para deslocamento institucional é outra situação. Cargo em comissão não transforma o carro em bem particular."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":90,"titulo":"Protocolo","real":false,"gabarito":"B","texto":null,"enunciado":["O protocolo de um órgão:"],"opcoes":["Julga o mérito do pedido e assina o contrato","Recebe, autua, numera e encaminha o documento a quem tem competência para decidir","Substitui a licitação quando o pedido está completo","Arquiva o papel sem lançar número","Escolhe o vencedor do pregão"],"explica":["Protocolo controla a entrada e o caminho do documento. Não concede o pedido, não habilita licitante e não paga fatura. Sem número de protocolo o setor perde o rastreio. A decisão de mérito fica com a autoridade competente."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":91,"titulo":"Métodos de arquivo","real":false,"gabarito":"D","texto":null,"enunciado":["Os métodos clássicos de arquivamento cobrados em prova de rotina administrativa são:"],"opcoes":["Somente por cor da pasta","Cronológico secreto, verbal e emergencial","Digital, verbal e emergencial","Alfabético, numérico e geográfico","Apenas pelo cargo de quem assinou"],"explica":["Alfabético ordena pelo nome. Numérico ordena pelo número e usa um índice para achar o nome. Geográfico ordena pelo lugar, como estado, cidade ou bairro. O método ajuda a localizar o documento. Ele não decide o mérito nem substitui o registro de entrada."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":92,"titulo":"Empresa do cônjuge","real":false,"gabarito":"A","texto":null,"enunciado":["A empresa do cônjuge de um servidor que atua na licitação, na fiscalização ou na gestão do contrato apresenta proposta. O servidor deve:"],"opcoes":["Declarar o impedimento e afastar-se dos atos; a participação da empresa, nesse caso, é vedada","Conduzir o pregão, desde que não comente o assunto em casa","Rejeitar os demais licitantes para evitar empate","Afastar-se só se a empresa do cônjuge ficar em primeiro lugar","Transferir a decisão ao protocolo"],"explica":["O art. 14, IV, da Lei 14.133 veda a participação de quem tenha vínculo, ou seja cônjuge, companheiro ou parente até o terceiro grau, de dirigente do órgão ou de agente que atue na licitação, na fiscalização ou na gestão. A vedação consta do edital. Conduzir o certame da empresa da família quebra a impessoalidade. O afastamento se declara antes do resultado, não depois."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":93,"titulo":"Dispensa motivada","real":false,"gabarito":"E","texto":null,"enunciado":["Uma dispensa de licitação regular exige, no processo:"],"opcoes":["Apenas a pressa do setor","A concordância verbal do fornecedor escolhido","Que o valor seja necessariamente alto","Sigilo absoluto, inclusive do fundamento legal","Motivação com os fatos, o dispositivo legal e a estimativa de preço"],"explica":["Contratação direta é exceção e se escreve. O processo mostra qual hipótese da lei ocorreu, quanto o objeto custa no mercado e quem autorizou. É mais rápido não é hipótese de dispensa. O resultado da contratação direta também se divulga, na forma da lei, em vez de ficar em sigilo permanente."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":94,"titulo":"Entrada no almoxarifado","real":false,"gabarito":"C","texto":null,"enunciado":["O material comprado, ao chegar ao órgão:"],"opcoes":["Vai direto para a sala de quem pediu, sem registro","Só é lançado no controle quando o estoque acabar","Entra no almoxarifado, com conferência e registro, antes de ser distribuído","Dispensa comparação com a nota e com o pedido","É consumido, e a nota se emite depois, de memória"],"explica":["Entrada sem registro esconde desvio e erro de quantidade. Conferem-se a especificação e a quantidade com a nota e com o pedido. A saída para o setor também se lança. O que não está no controle não se consegue prestar conta."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":95,"titulo":"Pedido do particular","real":false,"gabarito":"B","texto":null,"enunciado":["O documento pelo qual o particular pede algo à administração é o:"],"opcoes":["Ata","Requerimento","Edital","Glosa","Empenho"],"explica":["Requerimento é o pedido do interessado, como certidão, autorização ou informação. Ata narra o que ocorreu numa reunião. Edital convoca a licitação. Empenho reserva crédito orçamentário. Glosa é o desconto do que foi cobrado em desacordo com o contrato."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":96,"titulo":"Ata","real":false,"gabarito":"D","texto":null,"enunciado":["A ata de uma reunião registra:"],"opcoes":["O preço que a administração se dispõe a pagar, como se fosse a proposta vencedora","A sanção de declaração de inidoneidade","Apenas a lista de materiais do almoxarifado","O que ocorreu: presentes, assuntos e deliberações","O termo de referência da próxima compra"],"explica":["Ata é a memória da reunião ou da sessão, com presentes, assuntos e decisões, assinada por quem o regimento indicar. Não substitui contrato, edital nem termo de referência. Sanção tem processo próprio, e termo de referência descreve o objeto da contratação."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":97,"titulo":"Ofício e memorando","real":false,"gabarito":"A","texto":null,"enunciado":["Quanto a ofício e memorando, a orientação do Manual de Redação da Presidência desde 2018 é:"],"opcoes":["O memorando deixou de ser tipo autônomo, e o ofício também serve à comunicação interna","Memorando é sempre externo e ofício é sempre interno","Os dois foram extintos e só vale mensagem de aplicativo","Ofício só pode ser verbal","Memorando substitui o contrato administrativo"],"explica":["Apostila antiga separava ofício, para fora do órgão, e memorando, para dentro. O Manual de Redação Oficial de 2018 unificou o expediente: a comunicação oficial, também entre unidades, usa ofício. Requerimento do particular e ata de reunião continuam com outras funções. Mensagem de aplicativo não substitui o expediente oficial."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":98,"titulo":"Proposta ainda fechada","real":false,"gabarito":"E","texto":null,"enunciado":["Antes da abertura da sessão, o servidor que já conhece o valor de uma proposta:"],"opcoes":["Pode avisar o concorrente amigo para ele cobrir o preço","Publica o valor no grupo do setor, por causa da publicidade absoluta","Usa a informação para a empresa do cônjuge reduzir a oferta","Comenta o número no balcão de atendimento","Guarda sigilo; antecipar proposta quebra a igualdade do certame"],"explica":["A publicidade do edital não abre proposta sigilosa antes da hora. Vazar preço permite ajuste entre interessados e é fraude à licitação, além de falta funcional. O dever de sigilo também protege dado pessoal que esteja nos documentos de habilitação."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":99,"titulo":"Presente do licitante","real":false,"gabarito":"C","texto":null,"enunciado":["Um licitante oferece um presente ao servidor para agilizar a habilitação. O servidor deve:"],"opcoes":["Aceitar, se o valor for pequeno","Aceitar e registrar como doação ao órgão, sem processo","Recusar e comunicar à chefia ou à corregedoria; vantagem para praticar ato de ofício é ilícita","Aceitar e devolver depois da homologação","Pedir presente igual aos outros licitantes, para manter a isonomia"],"explica":["Agilizar ato de ofício em troca de vantagem é ilícito, não cortesia. O valor baixo não legaliza o recebimento. Isonomia não se resolve distribuindo presentes. O caminho é recusar e formalizar a ocorrência. Doação ao órgão, quando cabível, tem regra própria e não se confunde com benefício pessoal."]},{"tema":"Ética e rotinas","origem":"Treino · padrão de concurso de licitações","n":100,"titulo":"Inventário","real":false,"gabarito":"B","texto":null,"enunciado":["No controle do almoxarifado, o inventário:"],"opcoes":["Apaga a diferença entre a prateleira e o registro, sem apuração","Confronta a contagem física com o que está lançado e manda apurar a divergência","Substitui a licitação do ano seguinte","É feito apenas de memória, sem lista","Serve só para terrenos dominicais"],"explica":["Inventário é a contagem do estoque. Sobra ou falta se investiga: erro de lançamento, saída sem baixa ou desvio. Ajustar o número em silêncio esconde o problema. Material de consumo entra nesse controle. Bem imóvel dominical segue a regra de patrimônio, não a da prateleira."]}]</script>
+<script>
+(function () {
+  var dados = JSON.parse(document.getElementById("dados").textContent);
+  var KEY = "furb-licitacoes-treino-v1";
+  var temaAtual = "Todas";
+  var state = carregar();
+
+  function carregar() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return {};
+      var o = JSON.parse(raw);
+      var limpo = {};
+      if (!o || typeof o !== "object") return {};
+      Object.keys(o).forEach(function (k) {
+        if (/^[A-E]$/.test(o[k])) limpo[k] = o[k];
+      });
+      return limpo;
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function salvar() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function suave() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+  }
+
+  function inline(s) {
+    var d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  }
+
+  function paragrafos(destino, linhas) {
+    (linhas || []).forEach(function (p) {
+      var el = document.createElement("p");
+      el.innerHTML = inline(p);
+      destino.appendChild(el);
+    });
+  }
+
+  function card(q) {
+    var el = document.createElement("article");
+    el.className = "card";
+    el.id = "q" + q.n;
+    el.setAttribute("data-tema", q.tema);
+
+    var head = document.createElement("header");
+    head.className = "card-h";
+    var num = document.createElement("span");
+    num.className = "num";
+    num.textContent = String(q.n);
+    var tit = document.createElement("div");
+    tit.className = "card-tit";
+    var tema = document.createElement("p");
+    tema.className = "tema-q";
+    tema.textContent = q.tema;
+    var h = document.createElement("h2");
+    h.textContent = q.titulo;
+    var origem = document.createElement("p");
+    origem.className = "origem";
+    origem.textContent = q.origem;
+    tit.appendChild(tema);
+    tit.appendChild(h);
+    tit.appendChild(origem);
+    head.appendChild(num);
+    head.appendChild(tit);
+    if (q.real) {
+      var badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = "Prova real";
+      head.appendChild(badge);
+    }
+    el.appendChild(head);
+
+    if (q.texto && q.texto.corpo && q.texto.corpo.length) {
+      var bloco = document.createElement("div");
+      bloco.className = "texto";
+      var rot = document.createElement("p");
+      rot.className = "texto-rotulo";
+      rot.textContent = q.texto.rotulo;
+      bloco.appendChild(rot);
+      paragrafos(bloco, q.texto.corpo);
+      el.appendChild(bloco);
+    }
+
+    var enun = document.createElement("div");
+    enun.className = "enunciado";
+    paragrafos(enun, q.enunciado);
+    el.appendChild(enun);
+
+    var grupo = document.createElement("div");
+    grupo.className = "opcoes";
+    grupo.setAttribute("role", "group");
+    grupo.setAttribute("aria-label", "Alternativas da questão " + q.n);
+    "ABCDE".split("").forEach(function (letra, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "opcao";
+      b.setAttribute("data-letra", letra);
+      var bolha = document.createElement("span");
+      bolha.className = "bolha";
+      bolha.textContent = letra;
+      var texto = document.createElement("span");
+      texto.textContent = q.opcoes[i];
+      var ver = document.createElement("span");
+      ver.className = "veredito";
+      b.appendChild(bolha);
+      b.appendChild(texto);
+      b.appendChild(ver);
+      grupo.appendChild(b);
+    });
+    el.appendChild(grupo);
+
+    var explica = document.createElement("div");
+    explica.className = "explica";
+    explica.hidden = true;
+    var resultado = document.createElement("p");
+    resultado.className = "resultado";
+    var corpo = document.createElement("div");
+    corpo.className = "corpo";
+    explica.appendChild(resultado);
+    explica.appendChild(corpo);
+    el.appendChild(explica);
+
+    grupo.addEventListener("click", function (ev) {
+      var btn = ev.target.closest(".opcao");
+      if (!btn || state[q.n]) return;
+      state[q.n] = btn.getAttribute("data-letra");
+      salvar();
+      pintar(el, q, state[q.n]);
+      atualizarPlacar();
+    });
+
+    if (state[q.n]) pintar(el, q, state[q.n]);
+    return el;
+  }
+
+  function pintar(el, q, letra) {
+    var certa = letra === q.gabarito;
+    el.classList.add(certa ? "acertou" : "errou");
+    var botoes = el.querySelectorAll(".opcao");
+    for (var i = 0; i < botoes.length; i++) {
+      var b = botoes[i];
+      b.disabled = true;
+      var L = b.getAttribute("data-letra");
+      if (L === q.gabarito) {
+        b.classList.add("correta");
+        b.querySelector(".veredito").textContent = L === letra ? "Certa" : "Resposta";
+      } else if (L === letra) {
+        b.classList.add("errada");
+        b.querySelector(".veredito").textContent = "Não é essa";
+      }
+    }
+    var box = el.querySelector(".explica");
+    box.hidden = false;
+    box.classList.toggle("ok", certa);
+    box.querySelector(".resultado").textContent = certa
+      ? "Você acertou."
+      : "Não é essa. A resposta é a letra " + q.gabarito + ".";
+    paragrafos(box.querySelector(".corpo"), q.explica);
+  }
+
+  function contagem() {
+    var acertos = 0;
+    var erros = 0;
+    dados.forEach(function (q) {
+      if (!state[q.n]) return;
+      if (state[q.n] === q.gabarito) acertos++;
+      else erros++;
+    });
+    return { acertos: acertos, erros: erros, respondidas: acertos + erros };
+  }
+
+  function atualizarPlacar() {
+    var c = contagem();
+    document.getElementById("acertos").textContent = String(c.acertos);
+    document.getElementById("rotulo-acertos").textContent = c.acertos === 1 ? "acerto" : "acertos";
+    document.getElementById("detalhe").textContent = c.respondidas + " respondidas";
+    document.getElementById("barra-ok").style.width = (c.acertos / dados.length * 100) + "%";
+    document.getElementById("barra-erro").style.width = (c.erros / dados.length * 100) + "%";
+  }
+
+  function aplicarTema(nome) {
+    temaAtual = nome;
+    var cards = document.querySelectorAll(".card");
+    for (var i = 0; i < cards.length; i++) {
+      var mostrar = nome === "Todas" || cards[i].getAttribute("data-tema") === nome;
+      cards[i].classList.toggle("fora", !mostrar);
+    }
+    var chips = document.querySelectorAll(".chip");
+    for (var j = 0; j < chips.length; j++) {
+      chips[j].setAttribute("aria-pressed", chips[j].getAttribute("data-tema") === nome ? "true" : "false");
+    }
+  }
+
+  function render() {
+    var root = document.getElementById("lista");
+    root.innerHTML = "";
+    dados.forEach(function (q) { root.appendChild(card(q)); });
+    aplicarTema(temaAtual);
+    atualizarPlacar();
+  }
+
+  function montarTemas() {
+    var nav = document.getElementById("temas");
+    var nomes = ["Todas"];
+    dados.forEach(function (q) {
+      if (nomes.indexOf(q.tema) < 0) nomes.push(q.tema);
+    });
+    nomes.forEach(function (nome) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.setAttribute("data-tema", nome);
+      b.setAttribute("aria-pressed", nome === "Todas" ? "true" : "false");
+      b.textContent = nome === "Todas" ? "Prova inteira" : nome;
+      b.addEventListener("click", function () {
+        aplicarTema(nome);
+      });
+      nav.appendChild(b);
+    });
+  }
+
+  document.getElementById("proxima").addEventListener("click", function () {
+    var btn = document.getElementById("proxima");
+    var cards = document.querySelectorAll(".card");
+    for (var i = 0; i < cards.length; i++) {
+      var c = cards[i];
+      if (c.classList.contains("fora")) continue;
+      if (!c.classList.contains("acertou") && !c.classList.contains("errou")) {
+        c.style.scrollMarginTop = (document.querySelector(".topo").offsetHeight + 12) + "px";
+        c.scrollIntoView({ behavior: suave(), block: "start" });
+        return;
+      }
+    }
+    var antigo = btn.textContent;
+    btn.textContent = "Tudo respondido";
+    setTimeout(function () { btn.textContent = antigo; }, 1200);
+  });
+
+  document.getElementById("recomecar").addEventListener("click", function () {
+    document.getElementById("dialogo").hidden = false;
+  });
+  document.getElementById("cancelar").addEventListener("click", function () {
+    document.getElementById("dialogo").hidden = true;
+  });
+  document.getElementById("apagar").addEventListener("click", function () {
+    state = {};
+    salvar();
+    document.getElementById("dialogo").hidden = true;
+    render();
+    window.scrollTo(0, 0);
+  });
+
+  montarTemas();
+  render();
+})();
+</script>
+<noscript>Abra este arquivo num navegador com JavaScript para responder às questões.</noscript>
+</body>
+</html>
