@@ -1,2 +1,5 @@
-# portugues-furb-34ozt5le
-Treino de Língua Portuguesa no padrão da banca FURB.
+# Treino de português FURB
+
+Link para compartilhar:
+
+https://htmlpreview.github.io/?https://raw.githubusercontent.com/samuelriesz/portugues-furb-34ozt5le/main/index.html
