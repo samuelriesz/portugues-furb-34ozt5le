@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>SUS — Leis 8.080 e 8.142</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,620&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --papel: #f4ecdf;
+    --cartao: #fffdf8;
+    --tinta: #2a2118;
+    --suave: #7d6b5c;
+    --linha: #eadccb;
+    --terracota: #9a3412;
+    --verde: #1f6b45;
+    --verde-bg: #e7f6ee;
+    --rosa: #be123c;
+    --rosa-bg: #fdecef;
+    --sombra: 0 12px 32px rgba(72, 40, 12, 0.06);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--tinta);
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    background:
+      radial-gradient(900px 420px at 0% -10%, #f6d7b8 0%, transparent 60%),
+      radial-gradient(800px 380px at 100% 0%, #ead9c6 0%, transparent 55%),
+      var(--papel);
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:focus-visible, .opcao:focus-visible {
+    outline: 2px solid var(--terracota);
+    outline-offset: 2px;
+  }
+  .topo {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(244, 236, 223, 0.94);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid #e5d5c4;
+  }
+  .barra {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.75rem 1.1rem 0.35rem;
+  }
+  .marca { flex: 1; min-width: 0; }
+  .kicker {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--suave);
+    font-weight: 700;
+  }
+  h1 {
+    margin: 0;
+    font-family: Fraunces, Georgia, serif;
+    font-weight: 560;
+    font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+    letter-spacing: -0.02em;
+  }
+  .ticket {
+    background: var(--cartao);
+    border: 1px solid var(--linha);
+    border-radius: 16px;
+    min-width: 7.2rem;
+    padding: 0.35rem 0.85rem 0.45rem;
+    text-align: center;
+    box-shadow: var(--sombra);
+  }
+  .ticket strong {
+    display: block;
+    font-family: Fraunces, Georgia, serif;
+    font-size: 2rem;
+    font-weight: 620;
+    line-height: 1;
+    color: var(--terracota);
+    font-variant-numeric: tabular-nums;
+  }
+  .ticket span { display: block; color: var(--suave); font-size: 0.82rem; }
+  .acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .btn {
+    border: 1px solid #ddc9b4;
+    background: var(--cartao);
+    border-radius: 999px;
+    padding: 0.42rem 0.8rem;
+    font-weight: 650;
+  }
+  .btn:hover { border-color: #c4a484; }
+  .dialogo {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    width: min(18rem, calc(100vw - 2rem));
+    background: var(--cartao);
+    border: 1px solid var(--linha);
+    border-radius: 14px;
+    padding: 0.85rem;
+    box-shadow: 0 16px 40px rgba(60, 30, 10, 0.14);
+  }
+  .dialogo p { margin: 0 0 0.7rem; }
+  .dialogo .acoes { justify-content: flex-end; }
+  .btn-apagar { background: var(--rosa); color: white; border-color: var(--rosa); }
+  .dica {
+    margin: 0;
+    padding: 0.15rem 1.1rem 0.45rem;
+    color: var(--suave);
+    font-size: 0.95rem;
+  }
+  .trilha {
+    display: flex;
+    height: 6px;
+    margin: 0 1.1rem 0.55rem;
+    background: #e6d8c6;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  #barra-ok { background: var(--verde); width: 0; height: 100%; }
+  #barra-erro { background: #e58a9b; width: 0; height: 100%; }
+  .temas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0 1.1rem 0.75rem;
+  }
+  .chip {
+    border: 1px solid #e0d0bf;
+    background: transparent;
+    border-radius: 999px;
+    padding: 0.28rem 0.7rem;
+    white-space: nowrap;
+    color: #5c4b3e;
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--tinta);
+    border-color: var(--tinta);
+    color: #fffaf3;
+  }
+  main {
+    width: min(760px, calc(100% - 1.6rem));
+    margin: 1.1rem auto 3rem;
+  }
+  .card {
+    background: var(--cartao);
+    border: 1px solid var(--linha);
+    border-radius: 18px;
+    padding: 1.1rem 1.15rem 1.15rem;
+    margin: 0 0 0.9rem;
+    box-shadow: var(--sombra);
+    scroll-margin-top: 12.5rem;
+  }
+  .card.acertou { border-color: #b7dfc8; }
+  .card.errou { border-color: #f0c2ce; }
+  .fora { display: none; }
+  .card-h { display: flex; gap: 0.75rem; align-items: flex-start; }
+  .num {
+    font-family: Fraunces, Georgia, serif;
+    font-size: 1.35rem;
+    color: var(--terracota);
+    min-width: 2.5rem;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .card-tit { flex: 1; min-width: 0; }
+  .tema-q {
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--suave);
+    font-weight: 700;
+  }
+  h2 {
+    margin: 0.05rem 0 0;
+    font-family: Fraunces, Georgia, serif;
+    font-size: 1.32rem;
+    font-weight: 560;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+  .origem { margin: 0.2rem 0 0; color: var(--suave); font-size: 0.9rem; }
+  .badge {
+    margin-left: auto;
+    border: 1px solid #e7b2a0;
+    color: var(--terracota);
+    border-radius: 999px;
+    padding: 0.12rem 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .texto {
+    margin: 0.9rem 0 0;
+    padding: 0.85rem 1rem;
+    background: #f7f0e6;
+    border-radius: 12px;
+  }
+  .texto-rotulo {
+    margin: 0 0 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #7c5b45;
+  }
+  .texto p, .enunciado p, .corpo p { margin: 0.4rem 0; }
+  .enunciado p:first-child { margin-top: 0.85rem; }
+  .enunciado, .texto, .opcao, .corpo { overflow-wrap: break-word; }
+  .opcoes { display: grid; gap: 0.45rem; margin-top: 0.85rem; }
+  .opcao {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    background: #fffdf8;
+    border: 1.5px solid #e7d9c8;
+    border-radius: 14px;
+    padding: 0.72rem 0.85rem;
+  }
+  .opcao:hover:not(:disabled) { border-color: #c4a484; background: #fff; }
+  .opcao:disabled { cursor: default; }
+  .bolha {
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #f3e6d4;
+    font-weight: 700;
+    color: #5c4636;
+  }
+  .veredito { font-size: 0.78rem; font-weight: 700; }
+  .opcao.correta { background: var(--verde-bg); border-color: var(--verde); }
+  .opcao.correta .bolha { background: var(--verde); color: white; }
+  .opcao.correta .veredito { color: #145c38; }
+  .opcao.errada { background: var(--rosa-bg); border-color: var(--rosa); }
+  .opcao.errada .bolha { background: var(--rosa); color: white; }
+  .opcao.errada .veredito { color: var(--rosa); }
+  .explica {
+    margin-top: 0.9rem;
+    padding: 0.85rem 1rem;
+    background: #f8f1e6;
+    border-left: 3px solid var(--terracota);
+    border-radius: 0 12px 12px 0;
+  }
+  .explica.ok { border-left-color: var(--verde); background: #f3faf6; }
+  .explica .resultado { margin: 0 0 0.35rem; font-weight: 700; }
+  .rodape {
+    color: var(--suave);
+    font-size: 0.92rem;
+    padding: 0.4rem 0.2rem 0;
+  }
+  @media (max-width: 640px) {
+    .barra { flex-wrap: wrap; }
+    .acoes { width: 100%; }
+    .ticket { margin-left: auto; }
+    h2 { font-size: 1.18rem; }
+    .temas { flex-wrap: nowrap; overflow-x: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+<header class="topo">
+  <div class="barra">
+    <div class="marca">
+      <p class="kicker">SUS · Leis 8.080 e 8.142</p>
+      <h1>Treino das duas leis</h1>
+    </div>
+    <div class="ticket" aria-live="polite">
+      <strong id="acertos">0</strong>
+      <span id="rotulo-acertos">acertos</span>
+      <span id="detalhe">0 respondidas</span>
+    </div>
+    <div class="acoes">
+      <button type="button" class="btn" id="proxima">Próxima</button>
+      <button type="button" class="btn" id="recomecar">Recomeçar</button>
+      <div id="dialogo" class="dialogo" hidden>
+        <p>Apagar todas as respostas e zerar o placar?</p>
+        <div class="acoes">
+          <button type="button" class="btn" id="cancelar">Cancelar</button>
+          <button type="button" class="btn btn-apagar" id="apagar">Apagar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="dica" id="dica">A primeira escolha entra no placar. Acerte ou erre, a explicação abre.</p>
+  <div class="trilha" aria-hidden="true"><span id="barra-ok"></span><span id="barra-erro"></span></div>
+  <nav class="temas" id="temas" aria-label="Temas"></nav>
+</header>
+<main id="lista"></main>
+<footer class="rodape" style="width:min(760px, calc(100% - 1.6rem)); margin: -2rem auto 2.5rem;">
+  <p>Cem questões de treino sobre a Lei 8.080/1990 e a Lei 8.142/1990, no texto que vale hoje. Nenhuma é cópia de prova oficial. O placar conta a prova inteira, mesmo quando um tema está filtrado. Português e licitações ficam em outras páginas.</p>
+</footer>
+<script type="application/json" id="dados">[{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":1,"titulo":"Direito fundamental","real":false,"gabarito":"C","texto":null,"enunciado":["Pelo caput do art. 2º da Lei 8.080/1990, a saúde é:"],"opcoes":["Um benefício previdenciário, devido só a quem contribui","Um serviço exclusivo dos hospitais privados conveniados","Direito fundamental do ser humano, e o Estado deve prover as condições indispensáveis ao seu pleno exercício","Dever apenas da família, sem dever jurídico do Estado","Meta administrativa do município, sem assento de direito"],"explica":["O art. 2º abre a lei com essa fórmula: saúde é direito fundamental, e cabe ao Estado prover as condições do seu exercício. Contribuir para a previdência não é a porta de entrada. Família, empresas e sociedade também têm dever, mas isso não apaga o dever estatal, que está no parágrafo seguinte."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":2,"titulo":"Dever do Estado","real":false,"gabarito":"A","texto":null,"enunciado":["O parágrafo 1º do art. 2º da Lei 8.080 define o dever do Estado como:"],"opcoes":["A formulação e a execução de políticas econômicas e sociais que reduzam o risco de doença e de outros agravos, e o acesso universal e igualitário às ações e aos serviços de promoção, proteção e recuperação","Apenas a internação hospitalar de urgência","A distribuição de medicamentos somente a quem apresenta receita particular","A construção de hospitais, sem ações de promoção e proteção","O reembolso integral de qualquer plano de saúde privado"],"explica":["O dever não é só curar quem já adoeceu. O parágrafo 1º junta duas frentes: políticas econômicas e sociais que diminuam o risco, e acesso universal e igualitário à promoção, à proteção e à recuperação. Internação, sozinha, não esgota o artigo."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":3,"titulo":"Família e empresas","real":false,"gabarito":"E","texto":null,"enunciado":["O parágrafo 2º do art. 2º da Lei 8.080 afirma que o dever do Estado:"],"opcoes":["Exclui qualquer dever da família","Transfere a saúde exclusivamente às empresas","Só existe quando a sociedade não atua","Cessa no dia em que o município assume um hospital","Não exclui o dever das pessoas, da família, das empresas e da sociedade"],"explica":["O dever estatal é próprio e convive com o das pessoas, da família, das empresas e da sociedade. A lei não escolhe um único responsável e não libera o Estado porque a família também cuida. Os dois deveres andam juntos."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":4,"titulo":"Atividade física","real":false,"gabarito":"B","texto":null,"enunciado":["Na redação atual do art. 3º da Lei 8.080, dada pela Lei 12.864/2013, os fatores determinantes e condicionantes da saúde:"],"opcoes":["Formam lista fechada, e a atividade física ficou de fora","Incluem, entre outros, alimentação, moradia, saneamento, meio ambiente, trabalho, renda, educação, atividade física, transporte, lazer e acesso aos bens e serviços essenciais","Se resumem à renda e ao número de leitos privados","Foram reduzidos ao clima e à genética","Deixaram de mencionar moradia e saneamento"],"explica":["A redação de 2013 acrescentou a atividade física e manteve o entre outros: a lista é exemplificativa, não um rol fechado. Prova antiga, escrita antes dessa lei, ainda cobra a lista sem atividade física. O texto que vale hoje inclui atividade física junto de alimentação, moradia, saneamento, meio ambiente, trabalho, renda, educação, transporte, lazer e acesso aos bens e serviços essenciais."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":5,"titulo":"Organização do país","real":false,"gabarito":"D","texto":null,"enunciado":["Ainda pelo art. 3º da Lei 8.080, os níveis de saúde da população:"],"opcoes":["Dependem apenas do número de hospitais federais","São indiferentes à economia do país","Se explicam só pela herança genética","Expressam a organização social e econômica do país","São definidos exclusivamente pelo clima da região"],"explica":["O art. 3º liga o nível de saúde à forma como o país se organiza na sociedade e na economia. Por isso alimentação, renda, trabalho e saneamento entram como determinantes. Contar leito, sozinho, não substitui essa leitura."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":6,"titulo":"Bem-estar","real":false,"gabarito":"A","texto":null,"enunciado":["O parágrafo único do art. 3º da Lei 8.080 alcança também as ações destinadas a garantir:"],"opcoes":["Condições de bem-estar físico, mental e social às pessoas e à coletividade","Apenas o bem-estar físico, porque o mental ficou de fora da lei","Somente o bem-estar social, sem cuidado individual","O lucro dos prestadores contratados","A meta de internação, e nada além dela"],"explica":["O parágrafo único puxa para o campo da saúde as ações de bem-estar físico, mental e social. A lei não reduz saúde ao corpo nem ao hospital. O mental e o social entram junto com o físico."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":7,"titulo":"Quem a lei alcança","real":false,"gabarito":"C","texto":null,"enunciado":["O art. 1º da Lei 8.080 regula, em todo o território nacional, as ações e os serviços de saúde:"],"opcoes":["Somente os prestados por órgãos públicos, em caráter permanente","Somente os prestados pela iniciativa privada","Executados isolada ou conjuntamente, em caráter permanente ou eventual, por pessoas naturais ou jurídicas de direito público ou privado","Apenas os de urgência da União","Apenas os do Distrito Federal"],"explica":["O art. 1º é largo de propósito. Entram serviço público e privado, pessoa natural e jurídica, ação permanente e ação eventual, feitas sozinhas ou em conjunto, no país inteiro. Restringir a lei ao hospital federal permanente deixa de fora o que o caput escreveu."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":8,"titulo":"O que é o SUS","real":false,"gabarito":"E","texto":null,"enunciado":["O art. 4º da Lei 8.080 define o Sistema Único de Saúde como o conjunto de ações e serviços de saúde prestados por:"],"opcoes":["Apenas hospitais privados de fins lucrativos","Apenas o Ministério da Saúde, sem estados nem municípios","Apenas a administração direta da União","Apenas os municípios, sem a União e sem os estados","Órgãos e instituições públicas federais, estaduais e municipais, da administração direta e indireta, e fundações mantidas pelo Poder Público"],"explica":["O SUS do art. 4º é público nas três esferas e inclui administração direta, indireta e fundações mantidas pelo Poder Público. Hospital privado não compõe esse conceito: ele pode participar depois, em caráter complementar, o que é regra de outro parágrafo."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":9,"titulo":"Sangue e pesquisa","real":false,"gabarito":"B","texto":null,"enunciado":["O parágrafo 1º do art. 4º inclui no SUS as instituições públicas federais, estaduais e municipais de:"],"opcoes":["Somente cobrança de planos privados","Controle de qualidade, pesquisa e produção de insumos, medicamentos, inclusive sangue e hemoderivados, e equipamentos para a saúde","Somente ensino fundamental","Segurança pública e corpo de bombeiros","Arrecadação de tributos não vinculados à saúde"],"explica":["O parágrafo 1º puxa para dentro do SUS a rede pública de controle de qualidade, pesquisa e produção. Sangue, hemoderivados, medicamentos, insumos e equipamentos públicos entram nesse conjunto. Plano privado e tributo geral não são o objeto do parágrafo."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":10,"titulo":"Caráter complementar","real":false,"gabarito":"D","texto":null,"enunciado":["Pelo parágrafo 2º do art. 4º, a iniciativa privada:"],"opcoes":["É proibida de qualquer relação com o SUS","Substitui a rede pública como regra","Só participa se o capital for estrangeiro","Pode participar do SUS em caráter complementar","Passa a dirigir o Ministério da Saúde"],"explica":["A participação privada é complementar. Ela não toma o lugar da rede pública nem exige capital estrangeiro. O caput do art. 4º continua definindo o SUS pelos órgãos e instituições públicas. O contrato com o particular é o complemento, regulado adiante."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":11,"titulo":"Objetivos","real":false,"gabarito":"C","texto":null,"enunciado":["Entre os objetivos do SUS, o art. 5º da Lei 8.080 inclui:"],"opcoes":["Substituir os conselhos profissionais de todas as categorias","Vedar ações de prevenção quando houver fila de recuperação","Identificar e divulgar os fatores condicionantes e determinantes, formular a política de saúde e assistir as pessoas com promoção, proteção e recuperação integradas às atividades preventivas","Cobrar mensalidade do usuário como objetivo central","Concentrar toda a execução no Ministério da Saúde, sem política"],"explica":["O art. 5º tem três objetivos: identificar e divulgar condicionantes e determinantes; formular a política de saúde para que o econômico e o social observem o dever do art. 2º; e assistir as pessoas pela promoção, proteção e recuperação, integrando assistência e prevenção. Cobrar o usuário não é objetivo da lei."]},{"tema":"Direito à saúde","origem":"Treino · Leis 8.080 e 8.142","n":12,"titulo":"Rede em níveis","real":false,"gabarito":"A","texto":null,"enunciado":["O art. 8º da Lei 8.080 organiza as ações e os serviços públicos de saúde, e também os privados contratados ou conveniados que integram o SUS:"],"opcoes":["De forma regionalizada e hierarquizada, em níveis de complexidade crescente","Num único nível, sem região e sem hierarquia","Apenas por ordem alfabética dos hospitais","Somente na capital de cada estado","Pela escolha livre de cada prestador, sem regra de rede"],"explica":["Regionalizar e hierarquizar, em complexidade crescente, é a regra do art. 8º. Ela vale para o serviço público e para o privado contratado ou conveniado que integra o SUS. O prestador não desenha a rede por conta própria."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":13,"titulo":"Nome que a lei não usa","real":false,"gabarito":"E","texto":null,"enunciado":["Sobre a linguagem do art. 7º da Lei 8.080, assinale a alternativa correta."],"opcoes":["O artigo divide, com esses nomes, princípios doutrinários e princípios organizativos","O artigo revogou as diretrizes do art. 198 da Constituição","O artigo lista apenas a universalidade e silencia sobre descentralização","O artigo trata só de financiamento, sem princípio de acesso","O artigo não batiza grupos de doutrinários e organizativos: manda observar as diretrizes do art. 198 da Constituição e os princípios que ele mesmo enumera"],"explica":["Doutrinário e organizativo é apelido de aula e de prova. O art. 7º não usa esses rótulos. Ele manda desenvolver as ações conforme as diretrizes do art. 198 da Constituição e conforme os princípios que enumera, da universalidade à atenção humanizada. Estudar a lista é obrigatório. Cobrar o apelido como se fosse texto de lei é que erra."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":14,"titulo":"Universalidade","real":false,"gabarito":"B","texto":null,"enunciado":["A universalidade, no inciso I do art. 7º, é:"],"opcoes":["O acesso apenas ao pronto-socorro","O acesso aos serviços de saúde em todos os níveis de assistência","A reserva de vaga para quem contribui","A liberdade de cobrar do paciente no serviço público","A concentração de todo atendimento na capital"],"explica":["Universalidade, no inciso I, é acesso em todos os níveis de assistência, não só na urgência e não só para quem contribui. Ela convive com a integralidade e com a igualdade. Nível único de porta de emergência não cumpre o inciso."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":15,"titulo":"Integralidade","real":false,"gabarito":"D","texto":null,"enunciado":["Integralidade de assistência, no inciso II do art. 7º, significa:"],"opcoes":["Somente ações curativas individuais de alta complexidade","Somente prevenção coletiva, sem cuidado da pessoa doente","A escolha de um único procedimento por paciente, para sempre","O conjunto articulado e contínuo das ações e serviços preventivos e curativos, individuais e coletivos, exigidos para cada caso em todos os níveis de complexidade","A soma de mensalidades dos planos privados"],"explica":["O inciso II junta prevenção e cura, pessoa e coletividade, de forma articulada e contínua, no nível de complexidade que o caso exige. Cortar a prevenção porque há fila, ou cortar o cuidado individual porque a ação é coletiva, quebra a integralidade."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":16,"titulo":"Igualdade da assistência","real":false,"gabarito":"A","texto":null,"enunciado":["O inciso IV do art. 7º consagra:"],"opcoes":["A igualdade da assistência à saúde, sem preconceitos ou privilégios de qualquer espécie","Preferência de vaga segundo a renda do paciente","Atendimento apenas a quem reside na capital","Privilégio automático do servidor público","Fila distinta para cada religião"],"explica":["A palavra do inciso IV é igualdade da assistência, sem preconceito ou privilégio de qualquer espécie. Renda, cargo, origem ou religião não abrem fila melhor. Prova às vezes chama a ideia de equidade; o texto desse inciso fala em igualdade."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":17,"titulo":"Informação ao assistido","real":false,"gabarito":"C","texto":null,"enunciado":["O inciso V do art. 7º assegura:"],"opcoes":["Sigilo da própria saúde diante da pessoa assistida","Informação apenas à imprensa, e não ao paciente","O direito à informação, às pessoas assistidas, sobre a sua saúde","A divulgação do prontuário em rede social do serviço","A proibição de explicar o diagnóstico"],"explica":["Quem é assistido tem direito à informação sobre a própria saúde. Isso não autoriza jogar o prontuário em rede aberta nem substituir a pessoa pela imprensa. O inciso VI, ao lado, trata de outra informação: o potencial dos serviços e o uso que o usuário pode fazer deles."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":18,"titulo":"Epidemiologia","real":false,"gabarito":"E","texto":null,"enunciado":["Pelo inciso VII do art. 7º, a epidemiologia serve para:"],"opcoes":["Substituir o conselho de saúde","Definir o salário dos prestadores privados","Escolher o partido do secretário","Dispensar o plano de saúde","Estabelecer prioridades, alocar recursos e orientar a programação"],"explica":["O inciso VII manda usar a epidemiologia para três decisões: prioridade, alocação de recursos e orientação programática. Ela não nomeia secretário, não fecha o conselho e não apaga o plano. O perfil de adoecimento é que orienta para onde o recurso vai."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":19,"titulo":"Participação da comunidade","real":false,"gabarito":"B","texto":null,"enunciado":["O inciso VIII do art. 7º da Lei 8.080 prevê:"],"opcoes":["A gestão da saúde apenas por decreto, sem a comunidade","A participação da comunidade","O voto secreto para escolher o prestador contratado","A extinção dos conselhos de saúde","A transferência do Legislativo para o secretário"],"explica":["Participação da comunidade é princípio do inciso VIII. A Lei 8.142 é que desenha as instâncias: conferência e conselho. O inciso não apaga o Poder Legislativo nem transforma o usuário em pregoeiro. Ele garante que a comunidade entra na formulação e no controle."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":20,"titulo":"Direção única","real":false,"gabarito":"D","texto":null,"enunciado":["A descentralização político-administrativa do inciso IX do art. 7º inclui:"],"opcoes":["Várias direções concorrentes dentro do mesmo município","A concentração de todos os serviços na União","A extinção das secretarias estaduais","Direção única em cada esfera, ênfase na descentralização dos serviços para os municípios, e regionalização e hierarquização da rede","A livre criação de um segundo sistema municipal, paralelo ao SUS"],"explica":["Descentralizar não é multiplicar comando. O inciso IX exige direção única em cada esfera, manda enfatizar a ida dos serviços para os municípios e mantém a rede regionalizada e hierarquizada. Dois comandos no mesmo município quebram a direção única."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":21,"titulo":"Resolução","real":false,"gabarito":"C","texto":null,"enunciado":["O inciso XII do art. 7º trata da:"],"opcoes":["Cobrança de ingresso no posto de saúde","Proibição de encaminhar o paciente a outro nível","Capacidade de resolução dos serviços em todos os níveis de assistência","Extinção da atenção básica","Reserva de alta complexidade apenas ao setor privado lucrativo"],"explica":["Capacidade de resolução é o serviço conseguir dar resposta no seu nível, em todos os níveis de assistência. Isso não proíbe referenciar quem precisa de outro nível nem entrega a alta complexidade ao lucro privado. O inciso XII quer efetividade em cada degrau da rede."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":22,"titulo":"Meios duplicados","real":false,"gabarito":"A","texto":null,"enunciado":["O inciso XIII do art. 7º manda organizar os serviços públicos de modo a:"],"opcoes":["Evitar duplicidade de meios para fins idênticos","Criar dois prontos-socorros iguais em cada quadra","Obrigar cada secretaria a repetir o mesmo laboratório","Separar a rede por convênio privado do paciente","Impedir qualquer regionalização"],"explica":["O inciso XIII combate meio duplicado para o mesmo fim. Dois equipamentos públicos idênticos, sem necessidade da rede, desperdiçam recurso. Isso não proíbe regionalizar nem hierarquizar: a rede continua, sem repetir o que já resolve o mesmo fim."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":23,"titulo":"Violência contra a mulher","real":false,"gabarito":"E","texto":null,"enunciado":["Sobre o atendimento de mulheres e de vítimas de violência no SUS, o art. 7º hoje prevê:"],"opcoes":["Apenas registro de boletim, sem cuidado de saúde","Atendimento somente em delegacia, fora do SUS","A presença obrigatória do agressor na sala, para acompanhar","Cirurgia reparadora apenas no setor privado pago pela vítima","Atendimento público específico, com acompanhamento psicológico e cirurgias plásticas reparadoras, e acolhimento em local de privacidade que restrinja terceiro não autorizado, em especial o agressor"],"explica":["O inciso XIV organiza atendimento público específico para mulheres e vítimas de violência doméstica em geral, com atendimento, acompanhamento psicológico e cirurgias plásticas reparadoras. O parágrafo único, incluído pela Lei 14.847/2024, manda acolher em serviço próprio ou conveniado, em espaço de privacidade, e restringir a entrada de quem não está autorizado, sobretudo o agressor."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":24,"titulo":"Criança e adolescente","real":false,"gabarito":"B","texto":null,"enunciado":["O inciso XV do art. 7º, incluído pela Lei 14.679/2023, determina:"],"opcoes":["Sigilo absoluto que impeça identificar violência contra criança","Proteção integral dos direitos humanos dos usuários e especial atenção à identificação de maus-tratos, negligência e violência sexual contra crianças e adolescentes","Atendimento de criança apenas mediante pagamento","A exclusão de adolescente da rede pública","A transferência desse cuidado para fora do SUS"],"explica":["O inciso XV é duplo: proteção integral dos direitos humanos de todos os usuários, e olhar específico para identificar maus-tratos, negligência e violência sexual contra crianças e adolescentes. Esconder o caso em nome de um sigilo mal entendido contraria o inciso. O cuidado continua dentro do SUS."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":25,"titulo":"Atenção humanizada","real":false,"gabarito":"D","texto":null,"enunciado":["O inciso XVI do art. 7º, incluído pela Lei 15.126/2025, incorpora como princípio:"],"opcoes":["A cobrança de taxa de humanização","O atendimento apenas por aplicativo, sem pessoa","A extinção do acolhimento presencial","A atenção humanizada","A fila segundo a aparência do paciente"],"explica":["Atenção humanizada passou a ser princípio expresso do art. 7º. Não é taxa, não substitui o presencial e não autoriza escolher paciente pela aparência. Ela se soma à universalidade, à integralidade e à igualdade, que já estavam na lista."]},{"tema":"Princípios","origem":"Treino · Leis 8.080 e 8.142","n":26,"titulo":"Autonomia da pessoa","real":false,"gabarito":"A","texto":null,"enunciado":["O inciso III do art. 7º protege:"],"opcoes":["A preservação da autonomia das pessoas na defesa da sua integridade física e moral","A autonomia do prestador para recusar paciente do SUS sem motivo","A autonomia do município para sair do sistema único","A autonomia do plano privado para definir quem o SUS atende","A substituição do consentimento da pessoa pela ordem do acompanhante"],"explica":["O inciso III é a autonomia da pessoa na defesa da integridade física e moral. Não é liberdade do prestador para fechar a porta, nem liberdade do ente para abandonar o SUS. A pessoa assistida não é objeto do serviço."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":27,"titulo":"Vigilância sanitária","real":false,"gabarito":"C","texto":null,"enunciado":["Vigilância sanitária, na definição da Lei 8.080, é o conjunto de ações capaz de:"],"opcoes":["Apenas contar casos de uma doença já instalada, sem agir sobre produtos","Substituir a polícia judiciária em inquérito criminal","Eliminar, diminuir ou prevenir riscos à saúde e intervir nos problemas sanitários do meio ambiente, da produção e circulação de bens e da prestação de serviços de interesse da saúde","Somente vacinar, sem fiscalizar serviço ou produto","Definir a taxa de juros do financiamento"],"explica":["O parágrafo 1º do art. 6º define vigilância sanitária pela redução ou prevenção de riscos e pela intervenção nos problemas que vêm do meio ambiente, da produção, da circulação de bens e dos serviços de interesse da saúde. Contar doença é campo vizinho, o da vigilância epidemiológica. Polícia judiciária é outra função."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":28,"titulo":"Vigilância epidemiológica","real":false,"gabarito":"E","texto":null,"enunciado":["Vigilância epidemiológica, no parágrafo 2º do art. 6º, é o conjunto de ações que proporciona:"],"opcoes":["Apenas a multa de alvará sanitário","A venda de imunobiológico ao particular","A nomeação do secretário municipal","O fechamento automático de todo porto","Conhecimento, detecção ou prevenção de mudança nos fatores determinantes e condicionantes da saúde, para recomendar e adotar medidas de prevenção e controle"],"explica":["Epidemiologia de vigilância olha a mudança dos fatores que determinam e condicionam a saúde, individual ou coletiva, para recomendar e adotar prevenção e controle. Não se confunde com o alvará da vigilância sanitária nem com a nomeação do secretário. As duas vigilâncias estão no campo de atuação e têm definições próprias."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":29,"titulo":"Saúde do trabalhador","real":false,"gabarito":"B","texto":null,"enunciado":["Na saúde do trabalhador, a Lei 8.080 inclui:"],"opcoes":["Apenas o pagamento do seguro privado, sem cuidado no SUS","Assistência ao acidentado e ao doente profissional, estudos de risco, informação ao trabalhador, aos sindicatos e às empresas, e a possibilidade de o sindicato requerer a interdição de máquina, setor ou ambiente diante de risco iminente","A proibição de qualquer estudo sobre a máquina","O sigilo que impede avisar o trabalhador do risco","A exclusão das doenças do trabalho do SUS"],"explica":["O parágrafo 3º do art. 6º é largo: cuida de quem se acidentou ou adoeceu pelo trabalho, estuda o risco e as condições de produção, informa trabalhador, sindicato e empresa, e revisa a lista oficial de doenças com a participação sindical. Diante de risco iminente à vida ou à saúde, o sindicato pode requerer ao órgão competente a interdição da máquina, do setor ou de todo o ambiente."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":30,"titulo":"Saúde bucal","real":false,"gabarito":"D","texto":null,"enunciado":["A saúde bucal, incluída pela Lei 14.572/2023 no campo de atuação do SUS:"],"opcoes":["Ficou restrita à extração de urgência, sem prevenção","Saiu da lei em 2023","Só existe na atenção hospitalar privada","É o conjunto articulado de ações, em todos os níveis, de promoção, prevenção, recuperação e reabilitação odontológica, individual e coletiva, dentro da integralidade","Dispensa integração com o restante da atenção"],"explica":["O art. 6º, inciso I, alínea e, colocou a saúde bucal entre as ações que o SUS executa. O parágrafo 4º a define em todos os níveis de complexidade: promoção, prevenção, recuperação e reabilitação odontológica, da pessoa e da coletividade, dentro da integralidade. Não é um apêndice fora da rede."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":31,"titulo":"Complexo industrial da saúde","real":false,"gabarito":"C","texto":null,"enunciado":["O Complexo Econômico-Industrial da Saúde, na redação da Lei 15.471/2026, entra na Lei 8.080 como:"],"opcoes":["Um fundo privado sem relação com o SUS","Sinônimo exclusivo de plano de saúde","Parte do campo de atuação, na promoção do desenvolvimento produtivo e da inovação, e como base que produz medicamentos, vacinas, soros, hemoderivados, dispositivos, insumos farmacêuticos ativos e insumos críticos","Uma atribuição apenas municipal, vedada à União","A lista de doenças de notificação"],"explica":["A Lei 15.471/2026 inseriu o CEIS no art. 6º: a alínea f do inciso I trata da promoção do desenvolvimento produtivo, tecnológico e da inovação, e o parágrafo 6º define o complexo como a base econômica, produtiva e tecnológica dos serviços de saúde no país. Medicamento, vacina, soro, hemoderivado, dispositivo, insumo farmacêutico ativo e insumo crítico estão nessa definição. Não é plano de saúde nem lista de doenças."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":32,"titulo":"Assistência toxicológica","real":false,"gabarito":"A","texto":null,"enunciado":["A assistência toxicológica, de que trata o art. 6º na redação da Lei 14.715/2023, compreende serviços de:"],"opcoes":["Prevenção, diagnóstico e tratamento das intoxicações agudas e crônicas por substâncias químicas, medicamentos e toxinas de animais peçonhentos e de plantas tóxicas","Apenas perícia criminal de homicídio","Somente venda de agrotóxico","Vacinação de rotina, sem relação com intoxicação","Cobrança de franquia do envenenado"],"explica":["O parágrafo 5º do art. 6º define a assistência toxicológica por prevenção, diagnóstico e tratamento das intoxicações agudas e crônicas. As fontes são substâncias químicas, medicamentos e toxinas de animais peçonhentos e de plantas tóxicas. Perícia criminal e venda de veneno não são esse conceito."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":33,"titulo":"Estoque da farmácia","real":false,"gabarito":"E","texto":null,"enunciado":["Pelo art. 6º-A da Lei 8.080, incluído pela Lei 14.654/2023, o gestor do SUS deve:"],"opcoes":["Esconder o estoque de medicamento para evitar procura","Publicar o estoque apenas uma vez por ano, em diário oficial impresso","Informar o estoque só a quem apresentar mandato judicial","Publicar apenas o preço cobrado do paciente","Disponibilizar na sua página da internet os estoques de medicamentos das farmácias públicas sob a sua gestão, com atualização quinzenal e de forma acessível ao cidadão comum"],"explica":["O art. 6º-A obriga cada instância gestora a mostrar, no próprio site, o estoque das farmácias públicas que administra. A atualização é quinzenal, e a página tem de ser compreensível para o cidadão comum. Relatório anual escondido, ou informação só com ordem judicial, não cumpre o artigo."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":34,"titulo":"Sangue","real":false,"gabarito":"B","texto":null,"enunciado":["A formulação da política de sangue e de hemoderivados:"],"opcoes":["Está fora do SUS desde 1990","Integra o campo de atuação do SUS","Cabe apenas aos hemocentros privados lucrativos, sem política pública","É atribuição exclusiva da polícia civil","Dispensa qualquer participação da direção do sistema"],"explica":["Sangue e hemoderivados estão no campo de atuação do art. 6º e também nas instituições públicas que o parágrafo 1º do art. 4º inclui no SUS. A direção nacional ainda tem o papel de implementar o sistema nacional de sangue. Tratar sangue como negócio puramente privado, sem política do SUS, contraria a lei."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":35,"titulo":"Saneamento","real":false,"gabarito":"D","texto":null,"enunciado":["Quanto ao saneamento básico, o campo de atuação do SUS inclui:"],"opcoes":["A proibição de qualquer ação de saneamento","A absorção de toda a política de saneamento, com extinção dos demais órgãos","Apenas a cobrança da tarifa de água","Participar da formulação da política e da execução de ações de saneamento básico","Vedar a integração com meio ambiente"],"explica":["O inciso II do art. 6º é de participação: o SUS formula junto e executa ações de saneamento básico. Ele não apaga os outros órgãos da política de saneamento nem se reduz a cobrar tarifa. O inciso X do art. 7º ainda pede integração, no nível executivo, de saúde, meio ambiente e saneamento."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":36,"titulo":"Alimento e água","real":false,"gabarito":"A","texto":null,"enunciado":["A fiscalização e a inspeção de alimentos, água e bebidas para consumo humano:"],"opcoes":["Estão no campo de atuação do SUS","São vedadas ao SUS, por serem assunto apenas agrícola","Cabem só à iniciativa privada que produz o alimento","Dispensam vigilância sanitária","Se limitam a refrigerante importado"],"explica":["O art. 6º coloca no SUS a fiscalização de alimentos, da água e das bebidas. Isso conversa com a vigilância sanitária e com a participação em saneamento. O produtor não fiscaliza a si mesmo no lugar do poder público."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":37,"titulo":"Quem financia o indígena","real":false,"gabarito":"C","texto":null,"enunciado":["O Subsistema de Atenção à Saúde Indígena, pelo art. 19-C da Lei 8.080:"],"opcoes":["É financiado apenas pelas doações das aldeias","Dispensa qualquer recurso da União","Cabe à União financiar com seus recursos próprios","Substitui o SUS e funciona separado dele","É um plano privado de adesão individual"],"explica":["O art. 19-C põe o financiamento do subsistema indígena na União, com recursos próprios dela. O art. 19-B diz que o subsistema é componente do SUS e funciona integrado a ele. Estado, município e outras instituições podem atuar de forma complementar, o que não tira o dever financeiro da União."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":38,"titulo":"Distrito indígena","real":false,"gabarito":"E","texto":null,"enunciado":["A base territorial do Subsistema de Atenção à Saúde Indígena é:"],"opcoes":["O distrito policial da capital","Apenas o hospital universitário da metrópole, sem território indígena","O consórcio de planos privados","A região de saúde definida só pelo mercado","O Distrito Sanitário Especial Indígena, com o SUS como retaguarda e referência e com acesso aos níveis primário, secundário e terciário"],"explica":["O art. 19-G organiza o subsistema de forma descentralizada, hierarquizada e regionalizada e toma como base os Distritos Sanitários Especiais Indígenas. O SUS comum é a retaguarda e a referência. O acesso não para na atenção primária: a lei garante também o secundário e o terciário. O modelo, no art. 19-F, ainda deve considerar a realidade local e as especificidades da cultura indígena."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":39,"titulo":"Cuidado em casa","real":false,"gabarito":"B","texto":null,"enunciado":["O art. 19-I da Lei 8.080 estabelece, no SUS:"],"opcoes":["Apenas internação em hospital de campanha","O atendimento domiciliar e a internação domiciliar, incluindo, entre outros, procedimentos médicos, de enfermagem, fisioterapêuticos, psicológicos e de assistência social","A proibição de qualquer cuidado fora do prédio do hospital","A substituição de toda a rede por visita voluntária sem profissional","A cobrança de diária domiciliar do paciente do SUS"],"explica":["O capítulo do atendimento e da internação domiciliar, incluído pela Lei 10.424/2002, cria as duas modalidades no SUS. O parágrafo 1º lista, principalmente, procedimentos médicos, de enfermagem, fisioterapêuticos, psicológicos e de assistência social, entre outros necessários ao cuidado. Visita sem profissional e diária cobrada do usuário não são o artigo."]},{"tema":"Atribuições","origem":"Treino · Leis 8.080 e 8.142","n":40,"titulo":"Voz indígena","real":false,"gabarito":"D","texto":null,"enunciado":["As populações indígenas, pelo art. 19-H:"],"opcoes":["Estão proibidas de sentar em conselho de saúde","Só podem participar do conselho se abrirem mão do cuidado diferenciado","Participam apenas de ouvidoria privada","Têm direito de participar dos colegiados de formulação, acompanhamento e avaliação das políticas de saúde, como o Conselho Nacional e os conselhos estaduais e municipais, quando for o caso","Substituem, sozinhas, o Conselho Nacional de Saúde"],"explica":["O art. 19-H garante a participação indígena nos organismos colegiados, e cita o Conselho Nacional de Saúde e os conselhos estaduais e municipais, quando for o caso. Isso não extingue o conselho nem dispensa o modelo que respeita a cultura. É participação na política, não um conselho paralelo obrigatório em todo município sem a hipótese da lei."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":41,"titulo":"Quem dirige","real":false,"gabarito":"C","texto":null,"enunciado":["Pelo art. 9º, a direção do SUS é única em cada esfera e cabe:"],"opcoes":["À Câmara de Vereadores, no município","Ao conselho de saúde, como órgão executivo","Ao Ministério da Saúde, na União; à secretaria de saúde ou órgão equivalente, nos estados e no Distrito Federal; e à secretaria de saúde ou órgão equivalente, nos municípios","À comissão intergestores, no lugar da secretaria","Ao hospital filantrópico de maior porte"],"explica":["Direção única, no art. 9º, tem nome e endereço: Ministério da Saúde na União, secretaria de saúde ou equivalente no estado e no Distrito Federal, secretaria de saúde ou equivalente no município. Conselho delibera e controla, mas não é a direção executiva. Comissão intergestores pactua entre gestores. Câmara não executa o SUS."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":42,"titulo":"Distrito Federal","real":false,"gabarito":"A","texto":null,"enunciado":["Ao Distrito Federal, no SUS, competem:"],"opcoes":["As atribuições reservadas aos estados e as reservadas aos municípios","Apenas as atribuições da União","Nenhuma atribuição, porque a saúde do DF é federal pura","Apenas as atribuições municipais, nunca as estaduais","Somente a vigilância de fronteira"],"explica":["O art. 19 acumula no Distrito Federal o que a lei dá aos estados e o que dá aos municípios. Ele não vira União nem fica só com um dos dois papéis. A direção local continua sendo a secretaria ou o órgão equivalente, pelo art. 9º."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":43,"titulo":"O município executa","real":false,"gabarito":"E","texto":null,"enunciado":["A gestão e a execução dos serviços públicos de saúde, na regra do art. 18, cabem:"],"opcoes":["Apenas à União, em todo atendimento básico","Apenas ao estado, que executa e o município só opina","Ao conselho de saúde, que passa a ser o gestor","À iniciativa privada, como dever principal","Ao município, que planeja, organiza, controla e avalia as ações e ainda gerencia e executa os serviços públicos de saúde"],"explica":["O verbo do município, no art. 18, inclui gerir e executar, além de planejar, organizar, controlar e avaliar. O estado apoia e executa de forma suplementar. A União coordena o nacional. Conselho não vira secretaria, e o privado permanece complementar."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":44,"titulo":"O estado suplementa","real":false,"gabarito":"B","texto":null,"enunciado":["Na direção estadual do SUS, o art. 17 destaca:"],"opcoes":["A execução exclusiva de toda a atenção básica, no lugar do município","Apoio técnico e financeiro aos municípios e execução supletiva, além da coordenação e da execução complementar da vigilância e de outras ações","A proibição de identificar hospitais de referência","A direção dos portos como competência apenas municipal","A extinção da rede regional"],"explica":["O estado descentraliza para os municípios, acompanha a rede hierarquizada, dá apoio técnico e financeiro e executa de forma supletiva o que o município não cobre. Também coordena e, em caráter complementar, executa vigilância epidemiológica, vigilância sanitária, alimentação e nutrição, saúde do trabalhador e saúde bucal. Hospital de referência estadual continua no papel do estado."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":45,"titulo":"Consórcio","real":false,"gabarito":"D","texto":null,"enunciado":["Os municípios, pelo art. 10 da Lei 8.080:"],"opcoes":["Estão proibidos de se consorciar","Ao se consorciar, passam a ter duas direções do SUS","Só podem consorciar com a União, nunca entre si","Podem constituir consórcios para desenvolver em conjunto as ações e os serviços de saúde, e a direção única também vale para o consórcio administrativo intermunicipal","Perdem a secretaria municipal no dia do consórcio"],"explica":["Consórcio é permitido e não cria uma segunda direção. O parágrafo 1º do art. 10 aplica o princípio da direção única ao consórcio administrativo intermunicipal. O parágrafo 2º ainda permite organizar o SUS municipal em distritos, para articular recursos e práticas. A secretaria municipal não se extingue por causa disso."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":46,"titulo":"Comissão de gestores","real":false,"gabarito":"A","texto":null,"enunciado":["As Comissões Intergestores Bipartite e Tripartite, do art. 14-A:"],"opcoes":["São foros de negociação e pactuação entre gestores, sobre aspectos operacionais da gestão compartilhada, e não substituem o conselho de saúde","São o próprio controle social, no lugar do conselho","São compostas apenas por usuários","Homologam lei no lugar do chefe do Poder Executivo","Foram criadas pela Lei 8.142 como conferência permanente"],"explica":["Intergestores reúne gestores. A bipartite articula estado e municípios; a tripartite articula União, estados e municípios. Elas pactuam operação, financiamento e região de saúde, em coerência com os planos aprovados nos conselhos. Não são conferência, não são conselho e não tomam o lugar do controle social da Lei 8.142."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":47,"titulo":"Conass e Conasems","real":false,"gabarito":"C","texto":null,"enunciado":["O art. 14-B da Lei 8.080 reconhece o Conass e o Conasems como:"],"opcoes":["Órgãos do Poder Judiciário","Substitutos do Conselho Nacional de Saúde","Entidades representativas dos entes estaduais e municipais, de utilidade pública, que podem receber recursos da União pelo Fundo Nacional de Saúde e celebrar convênios","Prestadores privados de fins lucrativos","Conferências municipais de saúde"],"explica":["Conass representa os secretários estaduais e Conasems os secretários municipais. O art. 14-B declara as duas de utilidade pública, admite recurso da União via Fundo Nacional de Saúde para o custeio institucional e admite convênio. O Cosems, ligado institucionalmente ao Conasems, representa os municípios daquele estado. Nenhuma das duas substitui o Conselho Nacional de Saúde."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":48,"titulo":"Comissão intersetorial","real":false,"gabarito":"E","texto":null,"enunciado":["As comissões intersetoriais nacionais do art. 12:"],"opcoes":["Substituem o Ministério da Saúde na execução hospitalar","São subordinadas ao Poder Legislativo municipal","Tratam apenas de folha de pagamento","Foram vedadas pela Lei 8.142","São subordinadas ao Conselho Nacional de Saúde e articulam políticas que envolvem órgãos de fora do SUS, como alimentação, saneamento, vigilância sanitária e farmacoepidemiologia, recursos humanos, ciência e tecnologia e saúde do trabalhador"],"explica":["O art. 12 cria comissões intersetoriais de âmbito nacional, debaixo do Conselho Nacional de Saúde, com ministérios e sociedade civil. O art. 13 destaca alimentação e nutrição, saneamento e meio ambiente, vigilância sanitária e farmacoepidemiologia, recursos humanos, ciência e tecnologia e saúde do trabalhador. Elas articulam o que atravessa o SUS. Não operam o hospital no lugar da secretaria."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":49,"titulo":"Comissão com o ensino","real":false,"gabarito":"B","texto":null,"enunciado":["As comissões permanentes do art. 14 ligam:"],"opcoes":["Apenas os prestadores lucrativos entre si","Os serviços de saúde e as instituições de ensino profissional e superior, para prioridades de formação, educação permanente, pesquisa e cooperação técnica","O Tribunal de Contas e o conselho tutelar, exclusivamente","Os usuários e o Poder Judiciário, como única função","As empresas estrangeiras e o Banco Central"],"explica":["O art. 14 quer a formação de gente para o SUS articulada com quem ensina. A comissão permanente junta serviço de saúde e instituição de ensino profissional e superior. O assunto é prioridade e método de formação, educação permanente, pesquisa e cooperação. Não é comissão intergestores nem conselho de saúde."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":50,"titulo":"Porto, aeroporto e fronteira","real":false,"gabarito":"D","texto":null,"enunciado":["A vigilância sanitária de portos, aeroportos e fronteiras:"],"opcoes":["É competência exclusiva do município do litoral","Foi retirada do SUS","Cabe apenas à iniciativa privada do terminal","Tem normas e execução na direção nacional, e estados, Distrito Federal e municípios podem complementar a execução","Dispensa qualquer norma da União"],"explica":["Porto, aeroporto e fronteira são ponto de entrada do país, e a lei reserva a normatização e a execução à direção nacional. Estados, Distrito Federal e municípios colaboram e podem complementar essa execução. O município litorâneo não fica sozinho com a fronteira sanitária, e o terminal privado não substitui o poder de polícia sanitária."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":51,"titulo":"Agravo que escapa","real":false,"gabarito":"C","texto":null,"enunciado":["A União pode executar ações de vigilância epidemiológica e sanitária:"],"opcoes":["Em todo município, no lugar da secretaria, como rotina diária","Somente se o conselho municipal pedir sigilo","Em circunstâncias especiais, como agravo inusitado que escape ao controle da direção estadual ou que represente risco de disseminação nacional","Apenas dentro de hospital privado","Nunca, porque vigilância é só municipal"],"explica":["A regra descentraliza a vigilância, mas o parágrafo do art. 16 guarda uma exceção nacional: agravo inusitado que saia do controle estadual, ou risco de se espalhar pelo país. Isso não transforma a União em executora diária de todo município nem depende de sigilo do conselho."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":52,"titulo":"Requisição","real":false,"gabarito":"A","texto":null,"enunciado":["A requisição de bens e serviços de pessoas naturais ou jurídicas, prevista na Lei 8.080, cabe:"],"opcoes":["Para necessidade coletiva, urgente e transitória, decorrente de perigo iminente, calamidade pública ou irrupção de epidemia, com justa indenização","Para montar o estoque anual comum da farmácia, sem urgência","Sem indenização, porque o particular é obrigado a doar","Apenas contra órgãos públicos, nunca contra particular","Por prazo indeterminado, depois que a epidemia acabou"],"explica":["O art. 15 autoriza a autoridade da esfera correspondente a requisitar bens e serviços, de pessoa natural ou jurídica, quando a necessidade é coletiva, urgente e transitória e nasce de perigo iminente, calamidade pública ou irrupção de epidemia. A lei assegura justa indenização. Compra de rotina não se resolve por requisição, e o fim da emergência encerra o fundamento."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":53,"titulo":"Atribuição das três esferas","real":false,"gabarito":"E","texto":null,"enunciado":["É atribuição comum à União, aos estados, ao Distrito Federal e aos municípios:"],"opcoes":["Dirigir sozinho a vigilância de portos, aeroportos e fronteiras","Substituir o Conselho Nacional de Saúde","Fixar, sem o conselho nacional, a tabela nacional de remuneração","Vedar a elaboração de plano de saúde","Administrar os recursos de saúde da sua esfera, elaborar e atualizar o plano de saúde, propor o orçamento correspondente e exercer o poder de polícia sanitária"],"explica":["O art. 15 lista o que as três esferas fazem, cada uma na sua escala: administrar recurso, acompanhar os níveis de saúde, organizar informação, elaborar normas técnicas, participar do saneamento, atualizar o plano, elaborar a proposta orçamentária de acordo com o plano e exercer poder de polícia sanitária. Porto e fronteira, e a tabela nacional aprovada no Conselho Nacional de Saúde, não são tarefa solta de qualquer município."]},{"tema":"Direção","origem":"Treino · Leis 8.080 e 8.142","n":54,"titulo":"Contrato no município","real":false,"gabarito":"B","texto":null,"enunciado":["Na direção municipal, o art. 18 permite:"],"opcoes":["Contratar prestador privado sem observar norma do SUS","Celebrar contratos e convênios com entidades prestadoras privadas, com observância do art. 26, controlar a execução e fiscalizar os serviços privados da sua área","Abrir mão da execução dos serviços públicos","Vedar norma complementar municipal","Entregar a fiscalização ao próprio prestador contratado"],"explica":["O município executa a rede pública e, quando contrata ou convenia o privado, observa os critérios do art. 26, controla o que foi contratado e fiscaliza o serviço privado no seu território. Pode editar norma complementar para a sua área. O contratado não fiscaliza a si mesmo, e a execução pública continua sendo dever municipal."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":55,"titulo":"Duas instâncias","real":false,"gabarito":"D","texto":null,"enunciado":["A Lei 8.142/1990 determina que o SUS conte, em cada esfera de governo:"],"opcoes":["Apenas com o Ministério Público","Apenas com a comissão intergestores, no lugar de qualquer conselho","Com uma conferência permanente que substitui a câmara de vereadores","Com a Conferência de Saúde e o Conselho de Saúde, sem prejuízo das funções do Poder Legislativo","Com um conselho único nacional, sem instância municipal"],"explica":["O art. 1º da Lei 8.142 cria, em cada esfera, duas instâncias colegiadas: a Conferência de Saúde e o Conselho de Saúde. A frase sem prejuízo das funções do Poder Legislativo impede ler o conselho como se ele fosse a câmara ou a assembleia. Comissão intergestores é outro espaço, de gestores, e está na Lei 8.080."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":56,"titulo":"A cada quatro anos","real":false,"gabarito":"A","texto":null,"enunciado":["A Conferência de Saúde:"],"opcoes":["Reúne-se a cada quatro anos, com os vários segmentos sociais, para avaliar a situação de saúde e propor as diretrizes da política de saúde naquela esfera","É permanente e delibera todo mês no lugar do conselho","Reúne-se todo ano, em data fixa de janeiro","É composta apenas por secretários de saúde","Substitui o plano de saúde e o orçamento"],"explica":["A periodicidade legal da conferência é de quatro anos. Ela avalia a situação e propõe diretrizes para a política daquela esfera, com representação dos vários segmentos. Quem é permanente e deliberativo é o conselho. A conferência não vota o orçamento no lugar do Legislativo."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":57,"titulo":"Quem convoca","real":false,"gabarito":"C","texto":null,"enunciado":["A convocação da Conferência de Saúde:"],"opcoes":["Cabe apenas ao Poder Judiciário","Cabe apenas ao conselho, também na reunião ordinária de quatro anos","Cabe ao Poder Executivo e, extraordinariamente, ao Executivo ou ao Conselho de Saúde","Dispensa qualquer convocação, porque a data é automática","Cabe ao prestador privado de maior contrato"],"explica":["A reunião ordinária, de quatro em quatro anos, é convocada pelo Poder Executivo. A reunião extraordinária pode ser convocada pelo Executivo ou pelo Conselho de Saúde. O conselho não é o único convocador da conferência regular, e o prestador não convoca a política de saúde."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":58,"titulo":"Permanente e deliberativo","real":false,"gabarito":"E","texto":null,"enunciado":["O Conselho de Saúde, na Lei 8.142:"],"opcoes":["É órgão temporário, reunido só de quatro em quatro anos","É apenas consultivo, sem deliberar","Delibera e dispensa qualquer homologação","É composto só por usuários","Atua em caráter permanente e deliberativo na formulação de estratégias e no controle da execução da política, inclusive nos aspectos econômicos e financeiros"],"explica":["Permanente e deliberativo são as duas palavras do parágrafo 2º do art. 1º. O conselho formula estratégia e controla a execução, também no dinheiro. As decisões ainda são homologadas pelo chefe do poder legalmente constituído naquela esfera. Conselho só de usuários, ou conselho que se reúne a cada quatro anos, mistura as duas instâncias."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":59,"titulo":"Quatro segmentos","real":false,"gabarito":"B","texto":null,"enunciado":["O Conselho de Saúde é composto por representantes:"],"opcoes":["Apenas do governo e dos usuários","Do governo, dos prestadores de serviço, dos profissionais de saúde e dos usuários","Apenas dos prestadores privados","Apenas dos sindicatos médicos","Do Poder Legislativo, do Ministério Público e do Tribunal de Contas, exclusivamente"],"explica":["Os quatro segmentos do parágrafo 2º são governo, prestadores de serviço, profissionais de saúde e usuários. Legislativo, Ministério Público e Tribunal de Contas têm as suas funções próprias e não formam essa lista. A composição ainda precisa respeitar a paridade dos usuários."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":60,"titulo":"Metade dos assentos","real":false,"gabarito":"D","texto":null,"enunciado":["A representação dos usuários nos conselhos e nas conferências de saúde:"],"opcoes":["É de um quarto dos membros, igual à de cada um dos outros três segmentos","É minoritária, para não travar a gestão","Fica a critério do secretário em cada reunião","É paritária em relação ao conjunto dos demais segmentos","Foi extinta pela direção única"],"explica":["Paritária em relação ao conjunto dos demais segmentos significa que os usuários somam tanto quanto governo, prestadores e profissionais juntos. Isso é metade dos assentos, não um quarto. Dividir 25% para cada um dos quatro grupos é o erro clássico: a paridade não é entre os quatro, é dos usuários diante do resto somado."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":61,"titulo":"Homologação","real":false,"gabarito":"C","texto":null,"enunciado":["As decisões do Conselho de Saúde:"],"opcoes":["Valem como lei, sem qualquer ato posterior","São homologadas pelo presidente do prestador contratado","São homologadas pelo chefe do poder legalmente constituído em cada esfera de governo","Dispensam homologação porque o conselho é deliberativo","São homologadas apenas pelo Conselho Nacional, mesmo a decisão municipal"],"explica":["Deliberar não é o último carimbo. O parágrafo 2º do art. 1º da Lei 8.142 manda homologar a decisão pelo chefe do poder legalmente constituído naquela esfera: o prefeito, no município; o governador, no estado; e a autoridade equivalente nas demais. O prestador não homologa a política, e o conselho nacional não carimba a decisão de outro ente."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":62,"titulo":"Cadeiras nacionais","real":false,"gabarito":"A","texto":null,"enunciado":["Conass e Conasems, pela Lei 8.142:"],"opcoes":["Têm representação no Conselho Nacional de Saúde","Substituem os usuários na paridade de todo conselho municipal","Presidem, por direito, todas as conferências municipais","São a direção executiva do SUS no lugar das secretarias","Não têm qualquer assento colegiado previsto em lei"],"explica":["O parágrafo 3º do art. 1º dá ao Conass e ao Conasems representação no Conselho Nacional de Saúde. Não é cadeira automática em cada conselho municipal, nem presidência da conferência, nem direção executiva. A Lei 8.080, no art. 14-B, ainda os reconhece como entidades representativas, o que é outra regra."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":63,"titulo":"Regimento","real":false,"gabarito":"E","texto":null,"enunciado":["A organização e o funcionamento da conferência e do conselho:"],"opcoes":["Dispensam regimento","São definidos apenas por contrato do prestador privado","São aprovados pela conferência, e o conselho obedece sem votar","São impostos por resolução do Tribunal de Contas","São definidos em regimento próprio, aprovado pelo respectivo conselho"],"explica":["O parágrafo 5º do art. 1º põe organização e normas de funcionamento em regimento próprio, aprovado pelo respectivo conselho. A conferência não aprova sozinha o seu regimento no lugar do conselho. Prestador e Tribunal de Contas não escrevem essa norma interna."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":64,"titulo":"Dinheiro também","real":false,"gabarito":"B","texto":null,"enunciado":["O controle que o Conselho de Saúde faz da política de saúde:"],"opcoes":["Para na porta clínica e não alcança recurso","Inclui os aspectos econômicos e financeiros da execução","Se limita a opinar sobre campanha de vacina","Substitui a fiscalização do Tribunal de Contas","Alcança apenas o prestador filantrópico"],"explica":["O parágrafo 2º escreve inclusive nos aspectos econômicos e financeiros. O conselho acompanha estratégia e execução, também do dinheiro. Isso não extingue o Tribunal de Contas nem reduz o controle a uma campanha. A conta especial do SUS, na Lei 8.080, é movimentada sob a fiscalização do conselho daquela esfera."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":65,"titulo":"Conselho de 40","real":false,"gabarito":"D","texto":null,"enunciado":["Um conselho de saúde com 40 membros, respeitada a paridade da Lei 8.142, tem de usuários:"],"opcoes":["4 membros","8 membros","10 membros","20 membros","30 membros"],"explica":["Os usuários são paritários em relação ao conjunto dos demais segmentos, logo ocupam metade: 20 de 40. Dez seria um quarto, a conta errada de dividir a casa em quatro fatias iguais. Trinta deixaria o governo, os prestadores e os profissionais com apenas dez assentos somados, o inverso da regra."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":66,"titulo":"Quem é permanente","real":false,"gabarito":"A","texto":null,"enunciado":["Assinale a alternativa correta sobre as duas instâncias da Lei 8.142."],"opcoes":["A conferência avalia e propõe diretrizes a cada quatro anos; o conselho é que é permanente e deliberativo","As duas são permanentes e as duas se reúnem só de quatro em quatro anos","A conferência executa o orçamento e o conselho apenas assiste","Nenhuma das duas delibera","A conferência homologa as decisões do prefeito"],"explica":["A troca de papéis é pegadinha frequente. Permanente e deliberativo é o conselho. A conferência é periódica, de quatro anos, e propõe diretrizes a partir da avaliação da situação de saúde. Nenhuma das duas executa o orçamento no lugar da secretaria nem homologa o ato do chefe do Executivo: a homologação caminha do conselho para o chefe do poder."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":67,"titulo":"Não é o Legislativo","real":false,"gabarito":"C","texto":null,"enunciado":["A existência da conferência e do conselho:"],"opcoes":["Revoga a competência da câmara municipal para votar lei","Transfere ao conselho a sanção das leis de saúde","Não prejudica as funções do Poder Legislativo","Impede o prefeito de ser a direção municipal do SUS","Substitui a secretaria de saúde"],"explica":["O caput do art. 1º da Lei 8.142 é expresso: as instâncias colegiadas existem sem prejuízo das funções do Poder Legislativo. O conselho não vira câmara e não sanciona lei. A direção executiva continua na secretaria, pelo art. 9º da Lei 8.080, e o chefe do Executivo homologa as decisões do conselho."]},{"tema":"Controle social","origem":"Treino · Leis 8.080 e 8.142","n":68,"titulo":"Estratégia e execução","real":false,"gabarito":"E","texto":null,"enunciado":["O Conselho de Saúde atua:"],"opcoes":["Só na conferência de quatro anos","Apenas como ouvidoria de reclamação individual, sem política","Na execução financeira, sem poder formular estratégia","Como direção única do SUS, no lugar do Ministério e das secretarias","Na formulação de estratégias e no controle da execução da política de saúde da instância correspondente"],"explica":["Formular estratégia e controlar a execução são as duas metades do parágrafo 2º. O conselho não espera quatro anos, não se reduz a ouvidoria e não toma a cadeira da direção única. A direção executiva segue no Ministério ou na secretaria. O controle inclui o econômico e o financeiro, mas o conselho não vira o ordenador sozinho."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":69,"titulo":"Quatro destinos do fundo","real":false,"gabarito":"B","texto":null,"enunciado":["Os recursos do Fundo Nacional de Saúde, pelo art. 2º da Lei 8.142, são alocados como:"],"opcoes":["Apenas pagamento de pessoal de todos os poderes","Custeio e capital do Ministério da Saúde e de seus órgãos e entidades; investimentos de lei orçamentária de iniciativa do Legislativo aprovados pelo Congresso; investimentos do Plano Quinquenal do Ministério; e cobertura das ações a serem implementadas por municípios, estados e Distrito Federal","Somente empréstimo a plano privado","Apenas obras de saneamento sem relação com saúde","Reserva de lucro dos prestadores"],"explica":["O art. 2º tem quatro destinos. O inciso I é despesa de custeio e de capital do Ministério da Saúde, seus órgãos e entidades da administração direta e indireta. O II é investimento previsto em lei orçamentária, de iniciativa do Legislativo e aprovado pelo Congresso. O III é o Plano Quinquenal do Ministério. O IV é a cobertura das ações e serviços a serem implementados pelos municípios, estados e Distrito Federal."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":70,"titulo":"Cobertura do inciso IV","real":false,"gabarito":"D","texto":null,"enunciado":["Os recursos do inciso IV do art. 2º da Lei 8.142 destinam-se a:"],"opcoes":["Qualquer despesa do município, inclusive folha de outro setor","Somente publicidade do governo","Apenas pesquisa sem assistência","Investimentos na rede de serviços, cobertura assistencial ambulatorial e hospitalar e demais ações de saúde","Capitalização de plano de saúde lucrativo"],"explica":["O parágrafo único do art. 2º fecha o inciso IV em três frentes de saúde: investimento na rede, cobertura ambulatorial e hospitalar, e as demais ações de saúde. O dinheiro não vira despesa livre da prefeitura nem lucro de plano. O uso fora da finalidade de saúde ainda é tratado como emprego irregular de verba pública."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":71,"titulo":"Repasse automático","real":false,"gabarito":"C","texto":null,"enunciado":["Os recursos do inciso IV do art. 2º da Lei 8.142:"],"opcoes":["São pagos só depois de convênio caso a caso, sem critério legal","Ficam retidos no Fundo Nacional até pedido judicial","São repassados de forma regular e automática a municípios, estados e Distrito Federal, segundo os critérios do art. 35 da Lei 8.080","Vão integralmente aos hospitais privados, sem passar pelo ente","Dispensam fundo de saúde"],"explica":["O art. 3º da Lei 8.142 torna regular e automático o repasse dessa parcela, e aponta os critérios do art. 35 da Lei 8.080. Não é favor de cada convênio nem depósito direto na conta do hospital privado. Receber ainda depende das condições do art. 4º, entre elas o fundo de saúde."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":72,"titulo":"Setenta por cento","real":false,"gabarito":"A","texto":null,"enunciado":["Do repasse de que trata o art. 3º da Lei 8.142:"],"opcoes":["Pelo menos 70% destinam-se aos municípios, e o restante aos estados","Pelo menos 70% destinam-se aos estados, e o restante aos municípios","Metade fica no Ministério, como regra permanente do artigo","Todo o valor vai ao Distrito Federal","Os municípios recebem no máximo 30%"],"explica":["O parágrafo 2º do art. 3º é piso, não teto: pelo menos setenta por cento aos municípios, e o restante aos estados. Inverter a fração é erro comum. Trinta por cento não é o máximo municipal. O Distrito Federal recebe na condição de ente, mas o artigo não concentra nele a totalidade."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":73,"titulo":"Remanejamento","real":false,"gabarito":"E","texto":null,"enunciado":["Municípios consorciados para executar ações e serviços de saúde:"],"opcoes":["Perdem o direito ao repasse","Não podem mexer em nenhuma parcela","Passam a receber o recurso na conta pessoal do prefeito","Devolvem o dinheiro ao Ministério no ato do consórcio","Podem remanejar, entre si, parcelas dos recursos previstos no inciso IV do art. 2º da Lei 8.142"],"explica":["O parágrafo 3º do art. 3º autoriza o consórcio e o remanejamento entre os municípios de parcelas daquele inciso IV. O recurso continua público e vinculado à saúde. Não volta ao Ministério só porque houve consórcio e não cai em conta pessoal."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":74,"titulo":"Para poder receber","real":false,"gabarito":"B","texto":null,"enunciado":["Para receber os recursos do art. 3º da Lei 8.142, o ente deve contar, entre outros requisitos, com:"],"opcoes":["Apenas um hospital privado no território","Fundo de Saúde, Conselho de Saúde de composição paritária, plano de saúde, relatórios de gestão, contrapartida no orçamento e comissão de elaboração do plano de carreira, cargos e salários","Somente a contrapartida, dispensados fundo e conselho","Apenas o plano de saúde, dispensado o relatório de gestão","Certidão de cartório, no lugar do fundo"],"explica":["O art. 4º é cumulativo. Fundo, conselho paritário, plano, relatórios de gestão que permitam o controle do parágrafo 4º do art. 33 da Lei 8.080, contrapartida orçamentária e comissão do plano de carreira, cargos e salários entram juntos. A lei prevê dois anos para a implantação desse plano de carreira. Faltar uma peça não se resolve com certidão nem com hospital privado."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":75,"titulo":"Quem administra se faltar requisito","real":false,"gabarito":"D","texto":null,"enunciado":["Se o município não atende aos requisitos do art. 4º da Lei 8.142, os recursos correspondentes:"],"opcoes":["São cancelados e deixam de existir","Vão direto ao prestador privado escolhido pelo prefeito","Ficam com a câmara de vereadores","São administrados pelo estado; se o estado ou o Distrito Federal descumpre, a União é que administra","Passam automaticamente ao município vizinho, sem administração do estado"],"explica":["O parágrafo único do art. 4º não extingue o recurso. O descumprimento pelo município faz o estado administrar aquele dinheiro; o descumprimento pelo estado ou pelo Distrito Federal faz a União administrar. A palavra da lei é respectivamente. Vizinho e prestador privado não herdam a gestão por esse parágrafo."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":76,"titulo":"Portaria do ministro","real":false,"gabarito":"A","texto":null,"enunciado":["O art. 5º da Lei 8.142 autoriza:"],"opcoes":["O Ministério da Saúde, por portaria do ministro, a estabelecer condições para a aplicação da lei","O prefeito a dispensar fundo de saúde por decreto local","O conselho a revogar a Lei 8.080","O prestador a fixar a parcela de 70%","O Tribunal de Contas a criar nova fonte do fundo"],"explica":["O art. 5º é curto: o ministro pode, por portaria, estabelecer condições de aplicação da Lei 8.142. A portaria não apaga fundo, conselho, plano nem a parcela mínima dos municípios, que estão na lei. Prefeito, prestador e tribunal não recebem essa autorização."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":77,"titulo":"Critérios juntos","real":false,"gabarito":"C","texto":null,"enunciado":["Para definir os valores transferidos a estados, Distrito Federal e municípios, o art. 35 da Lei 8.080 manda usar:"],"opcoes":["Apenas o número de leitos privados","Apenas a população, em qualquer hipótese, sem outro critério","A combinação de critérios, como o perfil demográfico e o epidemiológico, segundo análise técnica de programas e projetos; em área de migração notória, o critério demográfico é ponderado por indicadores de crescimento, em especial o número de eleitores","O sorteio anual entre os entes","A cota igual para cada município, qualquer que seja o porte"],"explica":["O caput do art. 35 combina critérios, entre eles o perfil demográfico da região e o perfil epidemiológico da população a ser coberta, além de rede, desempenho anterior, participação da saúde nos orçamentos, plano quinquenal de investimentos e ressarcimento de atendimento prestado a outra esfera. O parágrafo 2º pondera o critério demográfico, nas áreas de migração notória, por outros sinais de crescimento, em especial os eleitores registrados. Cota igual e sorteio não estão no artigo."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":78,"titulo":"Per capita revogado","real":false,"gabarito":"E","texto":null,"enunciado":["O parágrafo 1º do art. 35 da Lei 8.080, que destinava metade dos recursos pelo critério per capita, independentemente de procedimento prévio:"],"opcoes":["Continua sendo a única regra de repasse","Foi elevado para 100% da transferência","Passou a valer só para hospitais privados","Obriga o município a devolver metade do fundo","Foi revogado pela Lei Complementar 141/2012"],"explica":["O próprio texto consolidado marca a revogação desse parágrafo pela Lei Complementar 141/2012. A metade per capita não é mais a regra vigente da Lei 8.080. O parágrafo 1º do art. 3º da Lei 8.142 era ponte transitória, para usar aquele critério enquanto o art. 35 não estivesse regulamentado. Com a revogação, a prova não deve tratar a metade per capita como o critério atual. O que permanece no art. 35 é a combinação de critérios do caput."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":79,"titulo":"De baixo para cima","real":false,"gabarito":"B","texto":null,"enunciado":["O processo de planejamento e orçamento do SUS, no art. 36:"],"opcoes":["Desce pronto do Ministério, sem ouvir o município","É ascendente, do nível local até o federal, ouvidos os órgãos deliberativos, e compatibiliza as necessidades da política com os recursos dos planos","Dispensa plano de saúde","É feito apenas pelo prestador contratado","Ignora o orçamento da seguridade"],"explica":["Planejar de baixo para cima é a regra do art. 36: do local ao federal, com os órgãos deliberativos ouvidos, juntando necessidade e recurso nos planos dos municípios, dos estados, do Distrito Federal e da União. O plano de cada nível é a base das atividades, e o financiamento entra na proposta orçamentária. O prestador não escreve o orçamento do SUS."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":80,"titulo":"Fora do plano","real":false,"gabarito":"D","texto":null,"enunciado":["Transferir recurso do SUS para ação que não está no plano de saúde:"],"opcoes":["É a regra, para dar liberdade ao gestor","É permitida sempre que o prestador solicitar","Depende apenas de acordo verbal","É vedado, exceto em situações emergenciais ou de calamidade pública","É obrigatório no mês de dezembro"],"explica":["O parágrafo 2º do art. 36 veda a transferência para financiar ação não prevista nos planos de saúde. A exceção são situações emergenciais ou de calamidade pública. Pedido do prestador e acordo verbal não abrem essa porta. Dezembro é o mês em que o Ministério define o conjunto dos valores de remuneração dos serviços, outro assunto, do art. 26."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":81,"titulo":"Sem auxílio ao lucro","real":false,"gabarito":"C","texto":null,"enunciado":["O art. 38 da Lei 8.080:"],"opcoes":["Obriga subvenção a todo hospital lucrativo","Autoriza auxílio financeiro sem contrato, se o hospital for privado","Não permite destinar subvenções e auxílios a instituições prestadoras de serviços de saúde com finalidade lucrativa","Proíbe qualquer contrato com o setor privado","Veda a preferência das filantrópicas"],"explica":["Subvenção e auxílio não vão para prestador com finalidade lucrativa. Isso não proíbe o contrato ou o convênio de participação complementar, que tem outra base, nem tira a preferência das filantrópicas e das entidades sem fins lucrativos. O que o art. 38 fecha é o auxílio a fundo perdido para quem lucra."]},{"tema":"Financiamento","origem":"Treino · Leis 8.080 e 8.142","n":82,"titulo":"Conta especial","real":false,"gabarito":"A","texto":null,"enunciado":["Os recursos financeiros do SUS, pelo art. 33:"],"opcoes":["São depositados em conta especial, em cada esfera, e movimentados sob fiscalização do conselho de saúde; na esfera federal, o Ministério da Saúde os administra pelo Fundo Nacional de Saúde","Entram na conta única de obras viárias, sem carimbo de saúde","Dispensam fiscalização do conselho","São administrados, na União, por um banco privado sorteado","Só existem na esfera municipal"],"explica":["Conta especial em cada esfera e fiscalização do conselho de saúde são a regra do art. 33. Na União, a administração é do Ministério da Saúde, por meio do Fundo Nacional de Saúde. O parágrafo 4º manda o Ministério acompanhar se o recurso transferido seguiu o programa aprovado. Malversação, desvio ou falta de aplicação abrem as medidas legais. Usar o dinheiro em outra finalidade é, ainda, o crime do art. 52."]},{"tema":"Iniciativa privada","origem":"Treino · Leis 8.080 e 8.142","n":83,"titulo":"Livre à iniciativa","real":false,"gabarito":"E","texto":null,"enunciado":["Pelo art. 21 da Lei 8.080, a assistência à saúde:"],"opcoes":["É monopólio estatal, vedada a clínica privada","Só pode ser prestada por autarquia","Depende de autorização do conselho de saúde para cada consulta particular","É livre apenas para capital estrangeiro","É livre à iniciativa privada"],"explica":["O art. 21 é direto: a assistência à saúde é livre à iniciativa privada. O art. 20 descreve os serviços privados como os prestados por profissionais liberais e por pessoas jurídicas de direito privado, por iniciativa própria. Liberdade de assistir não significa direção do SUS nem dispensa, quando houver contrato, das normas do art. 22 e do art. 26."]},{"tema":"Iniciativa privada","origem":"Treino · Leis 8.080 e 8.142","n":84,"titulo":"Capital estrangeiro","real":false,"gabarito":"B","texto":null,"enunciado":["Na redação atual do art. 23, dada pela Lei 13.097/2015:"],"opcoes":["É proibida qualquer participação de capital estrangeiro na assistência à saúde","É permitida a participação direta ou indireta, inclusive o controle, de empresas ou de capital estrangeiro nos casos que a lei lista","O capital estrangeiro é obrigatório em todo hospital público","A permissão alcança qualquer atividade, sem a lista legal","A regra antiga de proibição absoluta continua como texto vigente"],"explica":["A proibição absoluta ficou para trás. O art. 23 vigente permite participação, direta ou indireta, inclusive controle, nos casos que enumera: doações de organismos ligados à ONU, cooperação, financiamentos e empréstimos; pessoas jurídicas para instalar, operar e explorar hospitais gerais e especializados, inclusive filantrópicos, policlínicas, clínicas e ações de planejamento familiar; serviços de empregados e dependentes, sem fins lucrativos e sem custo para a seguridade; e os outros casos de lei específica. Fora da lista, a permissão não é um cheque em branco."]},{"tema":"Iniciativa privada","origem":"Treino · Leis 8.080 e 8.142","n":85,"titulo":"Quando a rede não cobre","real":false,"gabarito":"D","texto":null,"enunciado":["Quando a disponibilidade própria não garante a cobertura de uma área, o SUS:"],"opcoes":["Encerra o atendimento daquela população","É obrigado a doar a rede pública ao particular","Só pode recorrer a hospital estrangeiro","Pode recorrer aos serviços da iniciativa privada, em caráter complementar, por contrato ou convênio, observadas as normas de direito público","Contrata por acordo verbal, sem norma pública"],"explica":["O art. 24 condiciona o recurso ao privado à insuficiência da rede própria para cobrir a população da área. A participação é complementar e se formaliza por contrato ou convênio, com normas de direito público. Não há doação da rede nem contrato de boca. A preferência, no artigo seguinte, fica com as filantrópicas e as sem fins lucrativos."]},{"tema":"Iniciativa privada","origem":"Treino · Leis 8.080 e 8.142","n":86,"titulo":"Preferência","real":false,"gabarito":"A","texto":null,"enunciado":["Na participação complementar do art. 24, têm preferência:"],"opcoes":["As entidades filantrópicas e as sem fins lucrativos","As entidades de finalidade lucrativa, sempre","As empresas de capital estrangeiro, em qualquer caso","O prestador que oferecer comissão ao gestor","Apenas os planos individuais de alto custo"],"explica":["O art. 25 dá preferência às filantrópicas e às sem fins lucrativos quando o SUS precisa da participação complementar. Lucro e capital estrangeiro não furam essa fila por serem lucro ou por serem estrangeiros. Comissão ao gestor é ilícita e não é critério da lei."]},{"tema":"Iniciativa privada","origem":"Treino · Leis 8.080 e 8.142","n":87,"titulo":"Quem aprova a remuneração","real":false,"gabarito":"C","texto":null,"enunciado":["Os critérios e valores de remuneração dos serviços e os parâmetros de cobertura assistencial:"],"opcoes":["São fixados por cada prestador, no seu site","Dispensam qualquer ato da direção nacional","São estabelecidos pela direção nacional do SUS e aprovados no Conselho Nacional de Saúde","São aprovados apenas pela comissão intergestores, sem o conselho","São definidos pelo usuário no momento da consulta"],"explica":["O caput do art. 26 reserva a fixação à direção nacional e a aprovação ao Conselho Nacional de Saúde. O parágrafo 1º exige demonstrativo econômico-financeiro que garanta a qualidade da execução. O serviço contratado se submete às normas técnicas e administrativas e aos princípios do SUS, mantido o equilíbrio econômico e financeiro. Comissão de gestores não substitui essa aprovação."]},{"tema":"Iniciativa privada","origem":"Treino · Leis 8.080 e 8.142","n":88,"titulo":"Dirigente contratado","real":false,"gabarito":"E","texto":null,"enunciado":["Proprietário, administrador ou dirigente de entidade ou serviço contratado pelo SUS:"],"opcoes":["Deve ocupar, de preferência, a chefia da secretaria que o contratou","Pode exercer função de confiança no SUS se o contrato for alto","Fica automaticamente nomeado fiscal do próprio contrato","Integra o Conselho Nacional de Saúde como membro nato","Não pode exercer cargo de chefia ou função de confiança no SUS"],"explica":["O parágrafo 4º do art. 26 veda ao proprietário, ao administrador e ao dirigente da entidade contratada o cargo de chefia e a função de confiança no SUS. O tamanho do contrato não abre exceção. Fiscal do próprio contrato e cadeira nata no conselho nacional não são efeitos da contratação."]},{"tema":"Iniciativa privada","origem":"Treino · Leis 8.080 e 8.142","n":89,"titulo":"Tabela em dezembro","real":false,"gabarito":"B","texto":null,"enunciado":["O conjunto dos valores de remuneração dos serviços de saúde de que trata o art. 26:"],"opcoes":["É reajustado por cada município no dia do contrato, sem ato nacional","É definido no mês de dezembro de cada ano, por ato do Ministério da Saúde, buscando qualidade, equilíbrio econômico-financeiro e valor real, conforme a disponibilidade orçamentária e financeira","Fica congelado no valor de 1990","Dispensa observância da disponibilidade orçamentária","É publicado apenas pelo prestador"],"explica":["O parágrafo 5º, incluído pela Lei 14.820/2024, marca dezembro de cada ano e ato do Ministério da Saúde. O ato busca qualidade do atendimento, equilíbrio econômico-financeiro e preservação do valor real da remuneração, e observa a disponibilidade orçamentária e financeira. Não é tabela municipal solta nem preço de 1990."]},{"tema":"Iniciativa privada","origem":"Treino · Leis 8.080 e 8.142","n":90,"titulo":"Direito de recusar a tela","real":false,"gabarito":"D","texto":null,"enunciado":["Na telessaúde, regulada na Lei 8.080 pela Lei 14.510/2022, o paciente:"],"opcoes":["É obrigado a aceitar atendimento remoto se o serviço assim decidir","Perde o direito ao presencial ao morar longe da unidade","Só pode ser atendido por profissão não regulamentada","Pode recusar a modalidade remota, com garantia de atendimento presencial sempre que solicitar","Precisa de nova inscrição profissional para ser atendido"],"explica":["O art. 26-A alcança a prestação remota das profissões de saúde regulamentadas e lista, entre os princípios, o consentimento livre e informado e o direito de recusa, com atendimento presencial garantido sempre que solicitado. O art. 26-B define a telessaúde pela distância, com tecnologia da informação e comunicação, e os atos do profissional valem em todo o território nacional. A inscrição de que a lei dispensa é a do profissional, não uma inscrição do paciente."]},{"tema":"Iniciativa privada","origem":"Treino · Leis 8.080 e 8.142","n":91,"titulo":"Primeira consulta","real":false,"gabarito":"C","texto":null,"enunciado":["Sobre a decisão de usar telessaúde, o art. 26-C:"],"opcoes":["Proíbe a primeira consulta por essa modalidade","Obriga o profissional a atender todo caso a distância","Assegura ao profissional liberdade e independência para decidir, inclusive na primeira consulta, e para indicar ou optar pelo presencial quando entender necessário","Transfere a decisão apenas ao gestor financeiro","Veda ao profissional pedir exame presencial"],"explica":["O profissional não é obrigado a abrir mão do presencial nem está proibido de fazer a primeira consulta a distância. O art. 26-C lhe dá liberdade e independência, também na primeira consulta, no primeiro atendimento ou no procedimento, e permite indicar ou escolher o presencial quando for necessário. Gestor financeiro não toma esse julgamento clínico."]},{"tema":"Iniciativa privada","origem":"Treino · Leis 8.080 e 8.142","n":92,"titulo":"Inscrição e restrição","real":false,"gabarito":"A","texto":null,"enunciado":["Assinale a alternativa correta sobre a telessaúde."],"opcoes":["É dispensada a inscrição secundária do profissional que atuar em outra jurisdição exclusivamente por telessaúde, e norma que restrinja a modalidade tem de demonstrar que a restrição é imprescindível para evitar dano à saúde","Cada consulta remota exige nova inscrição no conselho do município do paciente","Qualquer portaria pode proibir a telessaúde sem explicar o dano que evita","O ato remoto só vale no estado em que o profissional tem consultório","A telessaúde dispensa o consentimento do paciente"],"explica":["O art. 26-H dispensa inscrição secundária ou complementar quando o exercício em outra jurisdição for só por telessaúde. O art. 26-F exige que a norma restritiva demonstre ser imprescindível para evitar dano aos pacientes. O parágrafo único do art. 26-B dá validade nacional ao ato. O consentimento livre e informado continua princípio, e as normas do órgão de direção do SUS também se observam."]},{"tema":"Recursos humanos","origem":"Treino · Leis 8.080 e 8.142","n":93,"titulo":"Campo de prática","real":false,"gabarito":"E","texto":null,"enunciado":["Na política de recursos humanos do art. 27:"],"opcoes":["Cada esfera forma pessoal sem articular com as outras","A dedicação exclusiva aos serviços do SUS é desestimulada","O serviço público do SUS não pode receber estudante","A formação para no ensino médio","As esferas de governo formulam e executam a política de forma articulada, com valorização da dedicação exclusiva, e os serviços públicos do SUS são campo de prática de ensino e pesquisa, por normas feitas com o sistema educacional"],"explica":["O art. 27 reparte a política entre as esferas, de forma articulada. Entre os objetivos está a formação em todos os níveis, inclusive a pós-graduação e o aperfeiçoamento permanente, e a valorização da dedicação exclusiva. O parágrafo único abre os serviços públicos do SUS como campo de prática de ensino e pesquisa, com normas específicas elaboradas junto com o sistema educacional."]},{"tema":"Recursos humanos","origem":"Treino · Leis 8.080 e 8.142","n":94,"titulo":"Chefia em tempo integral","real":false,"gabarito":"B","texto":null,"enunciado":["Cargo ou função de chefia, direção e assessoramento no SUS:"],"opcoes":["Pode ser exercido em meio expediente, como regra","Só pode ser exercido em regime de tempo integral","É privativo de profissional liberal sem vínculo","Dispensa qualquer regime de trabalho","Pode ser acumulado com outra chefia do SUS no contraturno"],"explica":["O caput do art. 28 é fechado: chefia, direção e assessoramento no SUS somente em tempo integral. Meio período não serve para esses postos. O parágrafo 2º ainda tira dessas funções a possibilidade, admitida para outros servidores, de atuar em mais de um estabelecimento. Outra chefia no contraturno não cabe."]},{"tema":"Recursos humanos","origem":"Treino · Leis 8.080 e 8.142","n":95,"titulo":"Dois estabelecimentos","real":false,"gabarito":"D","texto":null,"enunciado":["Servidor que acumula legalmente dois cargos, e servidor em tempo integral que não esteja em chefia, direção ou assessoramento:"],"opcoes":["Estão proibidos de qualquer atividade no SUS","Só podem trabalhar em estabelecimento privado","Perdem o vínculo se entrarem em dois serviços do SUS","Podem exercer atividades em mais de um estabelecimento do SUS; a exceção do tempo integral fica com quem ocupa chefia, direção ou assessoramento","Passam automaticamente a dirigir os dois estabelecimentos"],"explica":["O parágrafo 1º do art. 28 permite a quem acumula legalmente dois cargos ou empregos exercer atividade em mais de um estabelecimento do SUS. O parágrafo 2º estende isso ao servidor de tempo integral, mas excetua chefia, direção e assessoramento. A permissão não transforma o servidor em dirigente dos dois lugares."]},{"tema":"Recursos humanos","origem":"Treino · Leis 8.080 e 8.142","n":96,"titulo":"Gratuidade","real":false,"gabarito":"A","texto":null,"enunciado":["Pelo art. 43 da Lei 8.080, a gratuidade das ações e dos serviços de saúde:"],"opcoes":["Fica preservada nos serviços públicos contratados, ressalvadas as cláusulas dos contratos ou convênios com as entidades privadas","Foi extinta para permitir coparticipação do usuário em todo serviço público","Obriga o paciente a pagar o prestador e depois pedir reembolso","Alcança apenas a atenção básica, com cobrança na internação pública","Impede o SUS de remunerar a entidade contratada"],"explica":["O usuário do serviço público contratado não passa a pagar a ação de saúde: a gratuidade fica preservada. A ressalva do art. 43 são as cláusulas do contrato ou do convênio com a entidade privada, isto é, a forma pela qual o SUS remunera essa entidade. Ressalva não é coparticipação do paciente nem reembolso depois do pagamento particular."]},{"tema":"Recursos humanos","origem":"Treino · Leis 8.080 e 8.142","n":97,"titulo":"Hospital de ensino","real":false,"gabarito":"C","texto":null,"enunciado":["Os hospitais universitários e de ensino:"],"opcoes":["Estão fora do SUS por definição","Integram o SUS por encampação do patrimônio, sem convênio","Integram-se ao SUS mediante convênio, preservada a autonomia administrativa quanto ao patrimônio, aos recursos humanos e financeiros, ao ensino, à pesquisa e à extensão","Perdem a autonomia universitária no dia do convênio","Só atendem aluno, e não a população referida pelo SUS"],"explica":["O art. 45 integra esses hospitais ao SUS por convênio e preserva a autonomia administrativa no patrimônio, nos recursos humanos e financeiros, no ensino, na pesquisa e na extensão, nos limites da instituição. Não há encampação. O hospital de ensino não se fecha para a população que o SUS encaminha: a integração existe para o sistema, com a autonomia universitária de pé."]},{"tema":"Recursos humanos","origem":"Treino · Leis 8.080 e 8.142","n":98,"titulo":"Forças Armadas","real":false,"gabarito":"E","texto":null,"enunciado":["Os serviços de saúde das Forças Armadas, em relação ao SUS:"],"opcoes":["São a direção nacional do sistema","Estão proibidos de qualquer convênio","Substituem as secretarias estaduais em tempo de paz","Integram o SUS de forma automática, sem ajuste","Podem integrar-se ao SUS, em tempo de paz e havendo interesse recíproco, na forma de convênio"],"explica":["O parágrafo 2º do art. 45 não incorpora as Forças Armadas por decreto silencioso. Em tempo de paz, e se houver interesse dos dois lados, os serviços de saúde militares podem integrar-se ao SUS por convênio. Eles não passam a ser o Ministério da Saúde nem substituem a secretaria estadual."]},{"tema":"Recursos humanos","origem":"Treino · Leis 8.080 e 8.142","n":99,"titulo":"Dinheiro em outra finalidade","real":false,"gabarito":"B","texto":null,"enunciado":["Usar recurso financeiro do SUS em finalidade diversa da prevista na Lei 8.080:"],"opcoes":["É falta apenas administrativa, sem tipo penal","Constitui crime de emprego irregular de verbas ou rendas públicas, o do art. 315 do Código Penal, sem prejuízo de outras sanções","É lícito se o prefeito compensar no ano seguinte","Se resolve com doação pessoal posterior","Deixa de ser ilícito quando o valor é baixo"],"explica":["O art. 52 tipifica esse desvio como crime de emprego irregular de verbas ou rendas públicas, remetendo ao art. 315 do Código Penal. Outras sanções continuam cabíveis: o crime não esgota a resposta. Valor baixo, promessa de compensar depois ou doação pessoal não apagam o tipo. O recurso do fundo tem destino de saúde."]},{"tema":"Recursos humanos","origem":"Treino · Leis 8.080 e 8.142","n":100,"titulo":"Referência que permanece","real":false,"gabarito":"D","texto":null,"enunciado":["A Fundação das Pioneiras Sociais e o Instituto Nacional do Câncer, pelo art. 41:"],"opcoes":["Foram extintos pela Lei 8.080","Passaram à iniciativa privada lucrativa","Saíram da supervisão da direção nacional","Permanecem, sob supervisão da direção nacional do SUS, como referencial de prestação de serviços, de formação de recursos humanos e para transferência de tecnologia","Substituem o Conselho Nacional de Saúde"],"explica":["O art. 41 não apaga essas instituições. As ações da Fundação das Pioneiras Sociais e do Instituto Nacional do Câncer, supervisionadas pela direção nacional do SUS, permanecem como referencial de prestação de serviços, de formação de recursos humanos e para transferência de tecnologia. Elas não viram o conselho nacional nem deixam a supervisão do sistema."]}]</script>
+<script>
+(function () {
+  var dados = JSON.parse(document.getElementById("dados").textContent);
+  var KEY = "furb-sus-8080-8142-treino-v1";
+  var temaAtual = "Todas";
+  var state = carregar();
+
+  function carregar() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return {};
+      var o = JSON.parse(raw);
+      var limpo = {};
+      if (!o || typeof o !== "object") return {};
+      Object.keys(o).forEach(function (k) {
+        if (/^[A-E]$/.test(o[k])) limpo[k] = o[k];
+      });
+      return limpo;
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function salvar() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function suave() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+  }
+
+  function inline(s) {
+    var d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  }
+
+  function paragrafos(destino, linhas) {
+    (linhas || []).forEach(function (p) {
+      var el = document.createElement("p");
+      el.innerHTML = inline(p);
+      destino.appendChild(el);
+    });
+  }
+
+  function card(q) {
+    var el = document.createElement("article");
+    el.className = "card";
+    el.id = "q" + q.n;
+    el.setAttribute("data-tema", q.tema);
+
+    var head = document.createElement("header");
+    head.className = "card-h";
+    var num = document.createElement("span");
+    num.className = "num";
+    num.textContent = String(q.n);
+    var tit = document.createElement("div");
+    tit.className = "card-tit";
+    var tema = document.createElement("p");
+    tema.className = "tema-q";
+    tema.textContent = q.tema;
+    var h = document.createElement("h2");
+    h.textContent = q.titulo;
+    var origem = document.createElement("p");
+    origem.className = "origem";
+    origem.textContent = q.origem;
+    tit.appendChild(tema);
+    tit.appendChild(h);
+    tit.appendChild(origem);
+    head.appendChild(num);
+    head.appendChild(tit);
+    if (q.real) {
+      var badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = "Prova real";
+      head.appendChild(badge);
+    }
+    el.appendChild(head);
+
+    if (q.texto && q.texto.corpo && q.texto.corpo.length) {
+      var bloco = document.createElement("div");
+      bloco.className = "texto";
+      var rot = document.createElement("p");
+      rot.className = "texto-rotulo";
+      rot.textContent = q.texto.rotulo;
+      bloco.appendChild(rot);
+      paragrafos(bloco, q.texto.corpo);
+      el.appendChild(bloco);
+    }
+
+    var enun = document.createElement("div");
+    enun.className = "enunciado";
+    paragrafos(enun, q.enunciado);
+    el.appendChild(enun);
+
+    var grupo = document.createElement("div");
+    grupo.className = "opcoes";
+    grupo.setAttribute("role", "group");
+    grupo.setAttribute("aria-label", "Alternativas da questão " + q.n);
+    "ABCDE".split("").forEach(function (letra, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "opcao";
+      b.setAttribute("data-letra", letra);
+      var bolha = document.createElement("span");
+      bolha.className = "bolha";
+      bolha.textContent = letra;
+      var texto = document.createElement("span");
+      texto.textContent = q.opcoes[i];
+      var ver = document.createElement("span");
+      ver.className = "veredito";
+      b.appendChild(bolha);
+      b.appendChild(texto);
+      b.appendChild(ver);
+      grupo.appendChild(b);
+    });
+    el.appendChild(grupo);
+
+    var explica = document.createElement("div");
+    explica.className = "explica";
+    explica.hidden = true;
+    var resultado = document.createElement("p");
+    resultado.className = "resultado";
+    var corpo = document.createElement("div");
+    corpo.className = "corpo";
+    explica.appendChild(resultado);
+    explica.appendChild(corpo);
+    el.appendChild(explica);
+
+    grupo.addEventListener("click", function (ev) {
+      var btn = ev.target.closest(".opcao");
+      if (!btn || state[q.n]) return;
+      state[q.n] = btn.getAttribute("data-letra");
+      salvar();
+      pintar(el, q, state[q.n]);
+      atualizarPlacar();
+    });
+
+    if (state[q.n]) pintar(el, q, state[q.n]);
+    return el;
+  }
+
+  function pintar(el, q, letra) {
+    var certa = letra === q.gabarito;
+    el.classList.add(certa ? "acertou" : "errou");
+    var botoes = el.querySelectorAll(".opcao");
+    for (var i = 0; i < botoes.length; i++) {
+      var b = botoes[i];
+      b.disabled = true;
+      var L = b.getAttribute("data-letra");
+      if (L === q.gabarito) {
+        b.classList.add("correta");
+        b.querySelector(".veredito").textContent = L === letra ? "Certa" : "Resposta";
+      } else if (L === letra) {
+        b.classList.add("errada");
+        b.querySelector(".veredito").textContent = "Não é essa";
+      }
+    }
+    var box = el.querySelector(".explica");
+    box.hidden = false;
+    box.classList.toggle("ok", certa);
+    box.querySelector(".resultado").textContent = certa
+      ? "Você acertou."
+      : "Não é essa. A resposta é a letra " + q.gabarito + ".";
+    paragrafos(box.querySelector(".corpo"), q.explica);
+  }
+
+  function contagem() {
+    var acertos = 0;
+    var erros = 0;
+    dados.forEach(function (q) {
+      if (!state[q.n]) return;
+      if (state[q.n] === q.gabarito) acertos++;
+      else erros++;
+    });
+    return { acertos: acertos, erros: erros, respondidas: acertos + erros };
+  }
+
+  function atualizarPlacar() {
+    var c = contagem();
+    document.getElementById("acertos").textContent = String(c.acertos);
+    document.getElementById("rotulo-acertos").textContent = c.acertos === 1 ? "acerto" : "acertos";
+    document.getElementById("detalhe").textContent = c.respondidas + " respondidas";
+    document.getElementById("barra-ok").style.width = (c.acertos / dados.length * 100) + "%";
+    document.getElementById("barra-erro").style.width = (c.erros / dados.length * 100) + "%";
+  }
+
+  function aplicarTema(nome) {
+    temaAtual = nome;
+    var cards = document.querySelectorAll(".card");
+    for (var i = 0; i < cards.length; i++) {
+      var mostrar = nome === "Todas" || cards[i].getAttribute("data-tema") === nome;
+      cards[i].classList.toggle("fora", !mostrar);
+    }
+    var chips = document.querySelectorAll(".chip");
+    for (var j = 0; j < chips.length; j++) {
+      chips[j].setAttribute("aria-pressed", chips[j].getAttribute("data-tema") === nome ? "true" : "false");
+    }
+  }
+
+  function render() {
+    var root = document.getElementById("lista");
+    root.innerHTML = "";
+    dados.forEach(function (q) { root.appendChild(card(q)); });
+    aplicarTema(temaAtual);
+    atualizarPlacar();
+  }
+
+  function montarTemas() {
+    var nav = document.getElementById("temas");
+    var nomes = ["Todas"];
+    dados.forEach(function (q) {
+      if (nomes.indexOf(q.tema) < 0) nomes.push(q.tema);
+    });
+    nomes.forEach(function (nome) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.setAttribute("data-tema", nome);
+      b.setAttribute("aria-pressed", nome === "Todas" ? "true" : "false");
+      b.textContent = nome === "Todas" ? "Prova inteira" : nome;
+      b.addEventListener("click", function () {
+        aplicarTema(nome);
+      });
+      nav.appendChild(b);
+    });
+  }
+
+  document.getElementById("proxima").addEventListener("click", function () {
+    var btn = document.getElementById("proxima");
+    var cards = document.querySelectorAll(".card");
+    for (var i = 0; i < cards.length; i++) {
+      var c = cards[i];
+      if (c.classList.contains("fora")) continue;
+      if (!c.classList.contains("acertou") && !c.classList.contains("errou")) {
+        c.style.scrollMarginTop = (document.querySelector(".topo").offsetHeight + 12) + "px";
+        c.scrollIntoView({ behavior: suave(), block: "start" });
+        return;
+      }
+    }
+    var antigo = btn.textContent;
+    btn.textContent = "Tudo respondido";
+    setTimeout(function () { btn.textContent = antigo; }, 1200);
+  });
+
+  document.getElementById("recomecar").addEventListener("click", function () {
+    document.getElementById("dialogo").hidden = false;
+  });
+  document.getElementById("cancelar").addEventListener("click", function () {
+    document.getElementById("dialogo").hidden = true;
+  });
+  document.getElementById("apagar").addEventListener("click", function () {
+    state = {};
+    salvar();
+    document.getElementById("dialogo").hidden = true;
+    render();
+    window.scrollTo(0, 0);
+  });
+
+  montarTemas();
+  render();
+})();
+</script>
+<noscript>Abra este arquivo num navegador com JavaScript para responder às questões.</noscript>
+</body>
+</html>
